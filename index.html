@@ -154,6 +154,29 @@ body{background:linear-gradient(160deg,#080810 0%,#0D0D1A 50%,#060610 100%);min-
 .footer-cats{display:flex;justify-content:center;gap:7px;margin-bottom:.6rem;}
 .fc-img{width:30px;height:30px;border-radius:6px;object-fit:cover;object-position:top;border:1px solid var(--gold-d);opacity:.55;}
 .footer-tx{font-size:.55rem;color:var(--gold-d);letter-spacing:.08em;line-height:1.9;}
+/* 子供パスポート */
+.child-passport{display:none;background:linear-gradient(160deg,rgba(201,168,76,.12),rgba(201,168,76,.04));border:1.5px solid var(--gold);border-radius:12px;overflow:hidden;margin-bottom:1.4rem;position:relative;}
+.child-passport.show{display:block;animation:fadeUp .6s ease;}
+.cp-header{background:linear-gradient(90deg,rgba(201,168,76,.25),rgba(201,168,76,.1),rgba(201,168,76,.25));padding:.7rem 1rem;text-align:center;border-bottom:1px solid rgba(201,168,76,.3);}
+.cp-title-en{font-family:'Cinzel Decorative',serif;font-size:.58rem;color:var(--gold-d);letter-spacing:.2em;margin-bottom:2px;}
+.cp-title-jp{font-family:'Noto Serif JP',serif;font-size:1rem;color:var(--gold);letter-spacing:.25em;}
+.cp-body{padding:.9rem 1rem;}
+.cp-photo-row{display:flex;gap:.9rem;margin-bottom:.8rem;}
+.cp-photo{width:75px;height:95px;object-fit:cover;object-position:top;border-radius:6px;border:1.5px solid var(--gold);flex-shrink:0;}
+.cp-info{flex:1;}
+.cp-field{margin-bottom:.45rem;}
+.cp-key{font-size:.52rem;color:var(--gold-d);letter-spacing:.1em;margin-bottom:1px;}
+.cp-val{font-size:.75rem;font-family:'Noto Serif JP',serif;color:var(--fw);}
+.cp-val-sub{font-size:.6rem;color:rgba(240,237,230,.75);}
+.cp-divider{width:100%;height:0.5px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent);margin:.6rem 0;}
+.cp-dates{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:.8rem;}
+.cp-date-box{background:rgba(201,168,76,.05);border:0.5px solid rgba(201,168,76,.2);border-radius:6px;padding:.4rem .5rem;text-align:center;}
+.cp-date-key{font-size:.48rem;color:var(--gold-d);letter-spacing:.08em;margin-bottom:2px;}
+.cp-date-val{font-size:.6rem;color:var(--fw);font-family:'Noto Serif JP',serif;}
+.cp-seal{position:absolute;bottom:12px;right:12px;width:50px;height:50px;border:1.5px solid rgba(201,168,76,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:.45;}
+.cp-seal-txt{font-family:'Noto Serif JP',serif;font-size:.42rem;color:var(--gold);text-align:center;line-height:1.5;}
+.cp-msg{background:rgba(201,168,76,.06);border-left:2px solid var(--gold);border-radius:0 6px 6px 0;padding:.5rem .7rem;font-family:'Noto Serif JP',serif;font-size:.68rem;line-height:1.85;color:rgba(240,237,230,.87);}
+.cp-msg-lbl{font-size:.52rem;color:var(--gold);margin-bottom:3px;}
 </style>
 </head>
 <body>
@@ -268,7 +291,7 @@ body{background:linear-gradient(160deg,#080810 0%,#0D0D1A 50%,#060610 100%);min-
         <div class="field-label">生年月日</div>
         <div class="field-why">星座・干支・数秘術の3つを自動で計算するために使います。サーバーへの送信や保存は一切行いません。</div>
         <div class="date-wrap">
-          <input class="inp" type="date" id="bd" max="2010-12-31" min="1920-01-01" onchange="onBdChange()" style="padding-right:34px;">
+          <input class="inp" type="date" id="bd" max="2026-04-18" min="1920-01-01" onchange="onBdChange()" style="padding-right:34px;">
           <svg class="cal-icon" onclick="document.getElementById('bd').showPicker&&document.getElementById('bd').showPicker()" width="16" height="16" viewBox="0 0 24 24" fill="none">
             <rect x="3" y="4" width="18" height="18" rx="2" stroke="#C9A84C" stroke-width="1.5"/>
             <path d="M3 9H21M8 2V6M16 2V6" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
@@ -340,6 +363,49 @@ body{background:linear-gradient(160deg,#080810 0%,#0D0D1A 50%,#060610 100%);min-
           <div><div class="cc-nm" id="rCcNm"></div><div class="cc-tx" id="rCcTx"></div></div>
         </div>
       </div>
+    </div>
+    <!-- 子供パスポート -->
+    <div class="child-passport" id="childPassport">
+      <div class="cp-header">
+        <div class="cp-title-en">STAR READING PASSPORT</div>
+        <div class="cp-title-jp">星読みパスポート</div>
+      </div>
+      <div class="cp-body">
+        <div class="cp-photo-row">
+          <img class="cp-photo" id="cpImg" src="" alt="">
+          <div class="cp-info">
+            <div class="cp-field">
+              <div class="cp-key">✦ タイプ</div>
+              <div class="cp-val" id="cpEn"></div>
+              <div class="cp-val-sub" id="cpJp"></div>
+            </div>
+            <div class="cp-field">
+              <div class="cp-key">✦ 属性</div>
+              <div class="cp-val-sub" id="cpAttr"></div>
+            </div>
+          </div>
+        </div>
+        <div class="cp-divider"></div>
+        <div class="cp-dates">
+          <div class="cp-date-box">
+            <div class="cp-date-key">生年月日</div>
+            <div class="cp-date-val" id="cpBd"></div>
+          </div>
+          <div class="cp-date-box">
+            <div class="cp-date-key">発行日</div>
+            <div class="cp-date-val" id="cpIssue"></div>
+          </div>
+          <div class="cp-date-box">
+            <div class="cp-date-key">有効期限</div>
+            <div class="cp-date-val" id="cpExp"></div>
+          </div>
+        </div>
+        <div class="cp-msg">
+          <div class="cp-msg-lbl">✦ ナビゲーターより</div>
+          <span id="cpMsg"></span>
+        </div>
+      </div>
+      <div class="cp-seal"><div class="cp-seal-txt">星詠み<br>認定</div></div>
     </div>
     <button class="reset-btn" type="button" onclick="resetForm()">← 入力情報をクリアして最初から</button>
   </div>
@@ -586,6 +652,25 @@ function runDiagnosis(){
   document.getElementById('rCcNm').textContent='✦ '+CATS[catIdx].name+' のコメント';
   document.getElementById('rCcTx').textContent=CAT_COMMENTS[catIdx][wi]||w.jp+'よ、星があなたを照らしている。';
   document.getElementById('resultSection').classList.add('show');
+  var today=new Date();
+  var age=today.getFullYear()-d.getFullYear()-((today.getMonth()<d.getMonth()||(today.getMonth()===d.getMonth()&&today.getDate()<d.getDate()))?1:0);
+  var cpEl=document.getElementById('childPassport');
+  if(age>=0&&age<12){
+    document.getElementById('cpImg').src=IMGS[wi];
+    document.getElementById('cpEn').textContent=w.name;
+    document.getElementById('cpJp').textContent=w.jp;
+    document.getElementById('cpAttr').textContent=w.attr;
+    var bdParts=bd.split('-');
+    document.getElementById('cpBd').textContent=bdParts[0]+'/'+bdParts[1]+'/'+bdParts[2];
+    var ty=today.getFullYear(),tm=today.getMonth()+1,td=today.getDate();
+    var tmStr=(tm<10?'0':'')+tm,tdStr=(td<10?'0':'')+td;
+    document.getElementById('cpIssue').textContent=ty+'/'+tmStr+'/'+tdStr;
+    document.getElementById('cpExp').textContent=(ty+5)+'/'+tmStr+'/'+tdStr;
+    document.getElementById('cpMsg').textContent=CAT_COMMENTS[catIdx][wi]||w.jp+'よ、星があなたを照らしている。';
+    cpEl.classList.add('show');
+  }else{
+    cpEl.classList.remove('show');
+  }
   buildAllRankings();
   document.getElementById('fortuneSection').classList.add('show');
   setTimeout(function(){document.getElementById('resultSection').scrollIntoView({behavior:'smooth',block:'start'});},150);
@@ -598,6 +683,7 @@ function resetForm(){
   document.getElementById('calcPreview').classList.remove('show');
   document.getElementById('resultSection').classList.remove('show');
   document.getElementById('fortuneSection').classList.remove('show');
+  document.getElementById('childPassport').classList.remove('show');
   myTypeId=null;
   window.scrollTo({top:0,behavior:'smooth'});
 }
