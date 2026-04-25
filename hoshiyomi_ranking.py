@@ -72,8 +72,10 @@ def get_ranking(th: int, d: date) -> list:
     scores = []
     for i in range(1, 13):
         s = (date_seed * 31 + th * 7919 + i * 1013) & 0x7fffffff
-        s = (s * 1103515245 + 12345) & 0x7fffffff
-        s = (s * 1103515245 + 12345) & 0x7fffffff
+        # JS uses IEEE 754 double for arithmetic; product ~6.9e17 exceeds 2^53
+        # so precision is lost. Replicate with float() before masking.
+        s = int(float(s) * 1103515245 + 12345) & 0x7fffffff
+        s = int(float(s) * 1103515245 + 12345) & 0x7fffffff
         base = s % 60 + 20
         if has_bonus(i, da):
             base += 12
