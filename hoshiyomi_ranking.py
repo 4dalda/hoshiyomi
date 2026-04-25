@@ -114,7 +114,7 @@ FORTUNE_PHRASES = {
 # ニャビゲーター4匹の口調定義
 CHARACTERS = [
     {
-        "name": "霞雲（かすみ）",
+        "name": "霞雲（むらくも）",
         "style": (
             "落ち着いた深みのある和風・古典的な口調。「じゃ」「おる」「知れ」などの文語・古語を自然に使う。"
             "静かな威厳と慈しみがある。1〜2文で完結させること。"
@@ -149,7 +149,7 @@ _SYSTEM_PROMPT = (
     "それぞれ異なる口調・個性を持ち、今日の総合運1位のタイプに対してコメントします。\n\n"
     "## 出力形式\n"
     "以下のJSONのみを返してください。コードブロック・説明文は不要です。\n"
-    '{"霞雲（かすみ）": "コメント本文", "ノヴァ": "コメント本文", '
+    '{"霞雲（むらくも）": "コメント本文", "ノヴァ": "コメント本文", '
     '"フレイヤ": "コメント本文", "グレイス": "コメント本文"}\n\n'
     "## キャラクター口調\n"
     + "\n".join(f"- {c['name']}: {c['style']}" for c in CHARACTERS)
@@ -243,9 +243,8 @@ def generate_character_comments(tid: int, d: date) -> dict:
     )
 
     with client.messages.stream(
-        model="claude-opus-4-7",
+        model="claude-sonnet-4-5",
         max_tokens=1024,
-        thinking={"type": "adaptive"},
         system=[{"type": "text", "text": _SYSTEM_PROMPT,
                  "cache_control": {"type": "ephemeral"}}],
         messages=[{"role": "user", "content": user_content}],
