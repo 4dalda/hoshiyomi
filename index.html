@@ -695,25 +695,12 @@ function init(){
 
   // 今週の深読み記事
   var DEEP_ARTICLES=[
-    {title:'今週の月星座・感情の波を読む',href:'#'},
-    {title:'木星が示す拡大と幸運の扉',href:'#'},
-    {title:'金星と火星が語る縁の変化',href:'#'},
-    {title:'水星逆行中の注意点と対処法',href:'#'},
-    {title:'今週の天体配置と魂の課題',href:'#'},
-    {title:'新月エネルギーの使い方',href:'#'},
-    {title:'満月が照らす解放のとき',href:'#'},
-    {title:'土星が示す成長の試練',href:'#'},
-    {title:'天王星が開く変革の扉',href:'#'},
-    {title:'星座別・今週の深読みメッセージ',href:'#'},
-    {title:'冥王星が語る深層心理',href:'#'},
-    {title:'星の配置から読む今週の縁',href:'#'}
+    {title:'今週の月星座・感情の波を読む',href:'https://note.com/fit_auklet4929/n/n019aa4458c72'},
+    {title:'木星が示す拡大と幸運の扉',href:'https://note.com/fit_auklet4929/n/n425e82afa58c'}
   ];
-  var _now=new Date();
-  var _soy=new Date(_now.getFullYear(),0,1);
-  var _wn=Math.ceil((((_now-_soy)/86400000)+_soy.getDay()+1)/7);
   var dr=document.getElementById('footerDeepReads');
   var drHtml='<div class="footer-deep-ttl">― 今週の深読み記事 ―</div><div class="footer-deep-list">';
-  for(var i=0;i<3;i++){var da=DEEP_ARTICLES[(_wn*3+i)%DEEP_ARTICLES.length];drHtml+='<a class="footer-deep-a" href="'+da.href+'">'+da.title+'</a>';}
+  for(var i=0;i<DEEP_ARTICLES.length;i++){drHtml+='<a class="footer-deep-a" href="'+DEEP_ARTICLES[i].href+'" target="_blank" rel="noopener">'+DEEP_ARTICLES[i].title+'</a>';}
   drHtml+='</div>';
   dr.innerHTML=drHtml;
 
