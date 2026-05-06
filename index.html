@@ -159,7 +159,7 @@ body{background:linear-gradient(160deg,#080810 0%,#0D0D1A 50%,#060610 100%);min-
 .footer-deep-list{display:flex;flex-direction:column;gap:.3rem;align-items:center;}
 .footer-deep-a{font-family:'Noto Serif JP',serif;font-size:.58rem;color:rgba(240,237,230,.6);text-decoration:none;letter-spacing:.05em;transition:color .2s;}
 .footer-deep-a:hover{color:var(--gold);}
-.footer-deep-a::before{content:'✦ ';font-size:.45rem;color:var(--gold-d);}
+.footer-deep-a::before{content:none;}
 </style>
 </head>
 <body>
@@ -365,7 +365,13 @@ body{background:linear-gradient(160deg,#080810 0%,#0D0D1A 50%,#060610 100%);min-
   </div>
   <div class="footer">
     <div class="footer-cats" id="footerCats"></div>
-    <div class="footer-deep" id="footerDeepReads"></div>
+    <div class="footer-deep">
+      <div class="footer-deep-ttl">― 今週の深読み記事 ―</div>
+      <div class="footer-deep-list">
+        <a class="footer-deep-a" href="https://note.com/fit_auklet4929/n/n019aa4458c72" target="_blank" rel="noopener">📖 星詠みノ深読み｜2026年4月第4週 あなたへの神話メッセージ</a>
+        <a class="footer-deep-a" href="https://note.com/fit_auklet4929/n/n425e82afa58c" target="_blank" rel="noopener">💰 星詠みノ深読み｜2026年5月第1週 お金と豊かさを引き寄せる週</a>
+      </div>
+    </div>
     <div class="footer-tx">星詠み / Star Reading Chronicle<br>「星が語る、あなたの神話」<br><span style="opacity:.5;font-size:.48rem;">※エンターテインメント目的のオリジナル占いコンテンツです</span></div>
   </div>
 </div>
@@ -692,17 +698,6 @@ function init(){
   // フッター猫
   var footer=document.getElementById('footerCats');
   CAT_SD.forEach(function(src,i){footer.innerHTML+='<img class="fc-img" src="'+src+'" alt="'+CATS[i].name+'">';});
-
-  // 今週の深読み記事
-  var DEEP_ARTICLES=[
-    {title:'星詠みノ深読み｜2026年4月第4週 あなたへの神話メッセージ',href:'https://note.com/fit_auklet4929/n/n019aa4458c72'},
-    {title:'星詠みノ深読み｜2026年5月第1週 お金と豊かさを引き寄せる週💰',href:'https://note.com/fit_auklet4929/n/n425e82afa58c'}
-  ];
-  var dr=document.getElementById('footerDeepReads');
-  var drHtml='<div class="footer-deep-ttl">― 今週の深読み記事 ―</div><div class="footer-deep-list">';
-  for(var i=0;i<DEEP_ARTICLES.length;i++){drHtml+='<a class="footer-deep-a" href="'+DEEP_ARTICLES[i].href+'" target="_blank" rel="noopener">'+DEEP_ARTICLES[i].title+'</a>';}
-  drHtml+='</div>';
-  dr.innerHTML=drHtml;
 
   // 星
   var sg=document.getElementById('sg');
