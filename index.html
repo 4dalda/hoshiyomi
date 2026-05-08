@@ -357,11 +357,13 @@ body{background:linear-gradient(160deg,#080810 0%,#0D0D1A 50%,#060610 100%);min-
       <div class="theme-tab" onclick="switchTheme(1)"><span class="th-icon">💼</span>仕事運</div>
       <div class="theme-tab" onclick="switchTheme(2)"><span class="th-icon">💰</span>金運</div>
       <div class="theme-tab" onclick="switchTheme(3)"><span class="th-icon">🌟</span>総合運</div>
+      <div class="theme-tab" onclick="switchTheme(4)"><span class="th-icon">💋</span>キス運</div>
     </div>
     <div id="tp0" class="theme-panel active"></div>
     <div id="tp1" class="theme-panel"></div>
     <div id="tp2" class="theme-panel"></div>
     <div id="tp3" class="theme-panel"></div>
+    <div id="tp4" class="theme-panel"></div>
   </div>
   <div class="footer">
     <div class="footer-cats" id="footerCats"></div>
@@ -499,7 +501,12 @@ var FP={
      (t)=>t.jp+'の今日は内なる声に耳を傾けよ。直感が冴え渡り、その感覚に従うことが最善の結果をもたらす。',
      (t)=>t.jp+'にとって今日は準備と休息の日。深いところで大きな力が蓄えられている。',
      (t)=>t.jp+'の今日は人との縁が全ての鍵。感謝を言葉にすることで運気が好転する。',
-     (t)=>t.jp+'よ、今日は自分自身を信じよ。これまで歩んできた道は間違っていない。堂々と前を向け。']
+     (t)=>t.jp+'よ、今日は自分自身を信じよ。これまで歩んできた道は間違っていない。堂々と前を向け。'],
+  4:[(t)=>t.jp+'よ、今日のキス運は満天の星のように輝いている。心を開いて近づけば、唇が触れる奇跡が待っている。',
+     (t)=>t.jp+'の今日は甘い空気が漂う一日。視線が合う瞬間を大切にすれば、自然と距離が縮まる。',
+     (t)=>t.jp+'にとって今日は勇気が鍵。「もう少し近くに」という気持ちに素直になれば、運命が動き出す。',
+     (t)=>t.jp+'よ、今日は言葉より沈黙が雄弁。静かな夜の帰り道が、忘れられない記憶を刻む。',
+     (t)=>t.jp+'の今日はゆっくり焦らずに。相手のペースに寄り添うことで、星が二人を優しく引き寄せる。']
 };
 
 var LUCKY=['赤いアイテム','カフェでの会話','ピンクのハンカチ','手書きのメモ','夕暮れの散歩','手帳','青色のペン','朝のルーティン','コーヒーの香り','整理された机','黄色いもの','神社参拝','丸いコイン','招き猫','財布の整理','星空観察','深呼吸','白いもの','好きな音楽','感謝の言葉'];
@@ -616,7 +623,7 @@ function resetForm(){
 }
 
 function buildAllRankings(){
-  for(var th=0;th<4;th++){
+  for(var th=0;th<5;th++){
     var ranking=getRanking(th);
     var la=getLuckyAttr(),da=getDowAttr().attr;
     var html='<div class="ranking-list">';
