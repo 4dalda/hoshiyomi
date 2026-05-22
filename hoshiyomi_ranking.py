@@ -254,10 +254,14 @@ def generate_character_comments(tid: int, d: date) -> dict:
     for block in response.content:
         if block.type == "text":
             text = block.text.strip()
-            # モデルがコードフェンスで囲んだ場合に対応
             if text.startswith("```"):
                 lines = text.splitlines()
                 text = "\n".join(lines[1:-1] if lines[-1].startswith("```") else lines[1:])
+            # JSONオブジェクト部分だけ抽出
+            start = text.find("{")
+            end = text.rfind("}") + 1
+            if start != -1 and end > start:
+                text = text[start:end]
             return json.loads(text)
 
     return {c["name"]: "（コメント取得失敗）" for c in CHARACTERS}
