@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星詠みChronicle ✦ 個人鑑定</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #070714;
+      --bg2:       #0d0d2a;
+      --bg3:       #12123a;
+      --gold:      #d4a843;
+      --gold2:     #f0c040;
+      --silver:    #c0bebe;
+      --purple:    #7b5ea7;
+      --purple2:   #4a2f88;
+      --white:     #f0eee8;
+      --dim:       #666688;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Noto Serif JP', serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Stars background ── */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .star-dot {
+      position: absolute;
+      border-radius: 50%;
+      background: #d4a843;
+      animation: twinkle var(--dur, 3s) ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      from { opacity: 0.2; transform: scale(0.8); }
+      to   { opacity: 1;   transform: scale(1.2); }
+    }
+
+    /* ── Layout ── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 20px 0 40px;
+    }
+    .logo {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      color: var(--gold);
+      letter-spacing: 0.3em;
+      margin-bottom: 8px;
+    }
+    .title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--gold2), var(--gold), var(--silver));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.2em;
+      margin-bottom: 12px;
+    }
+    .subtitle {
+      color: var(--silver);
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+    }
+    .header-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 24px auto;
+      max-width: 400px;
+    }
+    .header-divider::before,
+    .header-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+    }
+    .header-divider span { color: var(--gold); font-size: 1.2rem; }
+
+    /* ── Card ── */
+    .card {
+      background: linear-gradient(135deg, var(--bg2), var(--bg3));
+      border: 1px solid rgba(212, 168, 67, 0.3);
+      border-radius: 16px;
+      padding: 36px 32px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      padding: 1px;
+      background: linear-gradient(135deg, var(--gold), transparent, var(--purple), transparent, var(--gold));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      color: var(--gold);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--gold), transparent);
+      opacity: 0.5;
+    }
+
+    /* ── Form elements ── */
+    .form-group {
+      margin-bottom: 22px;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--gold);
+      margin-bottom: 8px;
+      letter-spacing: 0.1em;
+    }
+    label .required {
+      color: #ff8888;
+      margin-left: 4px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+    .input-row > * { flex: 1; }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      background: rgba(10, 10, 30, 0.8);
+      border: 1px solid rgba(212, 168, 67, 0.4);
+      border-radius: 8px;
+      color: var(--white);
+      font-family: 'Noto Serif JP', serif;
+      font-size: 1rem;
+      padding: 12px 14px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    input:focus,
+    select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 12px rgba(212, 168, 67, 0.25);
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4a843'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 20px;
+      padding-right: 40px;
+    }
+    select option { background: #0d0d2a; }
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    .select-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* ── Navigator cards ── */
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .nav-card {
+      background: rgba(10, 10, 30, 0.6);
+      border: 1.5px solid rgba(212, 168, 67, 0.2);
+      border-radius: 10px;
+      padding: 14px 12px;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+    }
+    .nav-card:hover {
+      border-color: var(--gold);
+      background: rgba(212, 168, 67, 0.05);
+      transform: translateY(-2px);
+    }
+    .nav-card input[type="radio"] { display: none; }
+    .nav-card.selected {
+      border-color: var(--gold2);
+      background: rgba(212, 168, 67, 0.1);
+      box-shadow: 0 0 20px rgba(212, 168, 67, 0.15);
+    }
+    .nav-card.selected::after {
+      content: '✦';
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      color: var(--gold2);
+      font-size: 0.9rem;
+    }
+    .nav-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+    .nav-desc {
+      font-size: 0.75rem;
+      color: var(--silver);
+      line-height: 1.5;
+    }
+
+    /* ── Preview ── */
+    #preview-section {
+      display: none;
+      margin-bottom: 28px;
+    }
+    .preview-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(123, 94, 167, 0.3), rgba(74, 47, 136, 0.3));
+      border: 1px solid var(--purple);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 0.8rem;
+      color: #c0a0ff;
+      margin-bottom: 16px;
+    }
+    .type-reveal {
+      text-align: center;
+      padding: 20px;
+    }
+    .type-name-big {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--gold2), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+    .type-keyword {
+      color: var(--silver);
+      font-size: 0.9rem;
+    }
+    .score-bars {
+      margin-top: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .score-label {
+      font-size: 0.8rem;
+      color: var(--gold);
+      min-width: 50px;
+    }
+    .score-track {
+      flex: 1;
+      height: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .score-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      background: linear-gradient(to right, var(--purple), var(--gold));
+    }
+    .score-num {
+      font-size: 0.85rem;
+      color: var(--gold2);
+      min-width: 40px;
+      text-align: right;
+    }
+
+    /* ── Submit button ── */
+    .btn-generate {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #5a3a00, var(--gold), #5a3a00);
+      background-size: 200% 100%;
+      border: none;
+      border-radius: 10px;
+      color: #0a0a1e;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-generate:hover:not(:disabled) {
+      background-position: 100% 0;
+      box-shadow: 0 4px 25px rgba(212, 168, 67, 0.5);
+      transform: translateY(-2px);
+    }
+    .btn-generate:active { transform: translateY(0); }
+    .btn-generate:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .btn-generate .spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(10,10,30,0.3);
+      border-top-color: #0a0a1e;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    .error-msg {
+      display: none;
+      background: rgba(200, 50, 50, 0.15);
+      border: 1px solid rgba(200, 50, 50, 0.5);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #ff9999;
+      font-size: 0.9rem;
+      margin-top: 14px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 40px 0 20px;
+      color: var(--dim);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .container { padding: 20px 14px 60px; }
+      .title { font-size: 1.7rem; }
+      .card { padding: 24px 18px; }
+      .nav-grid { grid-template-columns: 1fr 1fr; }
+      .select-group { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Stars background -->
+<div class="stars" id="stars"></div>
+
+<div class="container">
+  <header>
+    <div class="logo">✦ HOSHIYOMI CHRONICLE ✦</div>
+    <h1 class="title">星詠みChronicle</h1>
+    <p class="subtitle">〜 あなただけの星の鑑定書 〜</p>
+    <div class="header-divider"><span>✦</span></div>
+  </header>
+
+  <form id="form" novalidate>
+
+    <!-- Name -->
+    <div class="card">
+      <div class="card-title">✦ お名前</div>
+      <div class="form-group">
+        <label for="name">お名前 / ニックネーム <span class="required">*</span></label>
+        <input type="text" id="name" name="name" placeholder="例：星詠み 花子" maxlength="30" required>
+      </div>
+    </div>
+
+    <!-- Birth date -->
+    <div class="card">
+      <div class="card-title">✦ 生年月日</div>
+      <div class="form-group">
+        <label>生年月日 <span class="required">*</span></label>
+        <div class="input-row">
+          <div>
+            <label for="year" style="font-size:0.75rem; color:var(--silver); margin-bottom:4px;">年</label>
+            <input type="number" id="year" name="year" placeholder="1990" min="1920" max="2010" required>
+          </div>
+          <div>
+            <label for="month" style="font-size:0.75rem; color:var(--silver); margin-bottom:4px;">月</label>
+            <input type="number" id="month" name="month" placeholder="1" min="1" max="12" required>
+          </div>
+          <div>
+            <label for="day" style="font-size:0.75rem; color:var(--silver); margin-bottom:4px;">日</label>
+            <input type="number" id="day" name="day" placeholder="1" min="1" max="31" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blood type -->
+    <div class="card">
+      <div class="card-title">✦ 血液型</div>
+      <div class="form-group">
+        <label for="blood">血液型 <span class="required">*</span></label>
+        <div class="select-group">
+          <select id="blood" name="blood" required>
+            <option value="" disabled selected>選択してください</option>
+            <option value="A">A型</option>
+            <option value="B">B型</option>
+            <option value="O">O型</option>
+            <option value="AB">AB型</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigator -->
+    <div class="card">
+      <div class="card-title">✦ ナビゲーター猫を選んでください</div>
+      <div class="nav-grid" id="nav-grid">
+        <label class="nav-card" onclick="selectNav(this, '叢雲')">
+          <input type="radio" name="navigator" value="叢雲">
+          <div class="nav-name">叢雲 <span style="font-size:0.9rem">🌙</span></div>
+          <div class="nav-desc">丁寧で落ち着いた和語口調。古の知恵を語る月の猫。</div>
+        </label>
+        <label class="nav-card" onclick="selectNav(this, 'ノヴァ')">
+          <input type="radio" name="navigator" value="ノヴァ">
+          <div class="nav-name">ノヴァ <span style="font-size:0.9rem">⭐</span></div>
+          <div class="nav-desc">ギャルギャル・アメリカンカタカナ口調。元気いっぱいの星猫。</div>
+        </label>
+        <label class="nav-card" onclick="selectNav(this, 'フレイヤ')">
+          <input type="radio" name="navigator" value="フレイヤ">
+          <div class="nav-name">フレイヤ <span style="font-size:0.9rem">🐱</span></div>
+          <div class="nav-desc">ニャー…ゴロゴロゆっくりやわらか口調。甘えん坊な森の猫。</div>
+        </label>
+        <label class="nav-card" onclick="selectNav(this, 'グレイス')">
+          <input type="radio" name="navigator" value="グレイス">
+          <div class="nav-name">グレイス <span style="font-size:0.9rem">❄</span></div>
+          <div class="nav-desc">丁寧だけど冷たいツンデレ口調。クールな氷の猫。</div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="card" id="preview-section">
+      <div class="card-title">✦ 鑑定プレビュー</div>
+      <div class="preview-badge">✦ リアルタイム判定中</div>
+      <div class="type-reveal">
+        <div class="type-name-big" id="preview-type-name">—</div>
+        <div class="type-keyword" id="preview-type-keyword">—</div>
+      </div>
+      <div class="score-bars">
+        <div class="score-row">
+          <span class="score-label">総合運</span>
+          <div class="score-track"><div class="score-fill" id="bar-total" style="width:0%"></div></div>
+          <span class="score-num" id="num-total">—</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">恋愛運</span>
+          <div class="score-track"><div class="score-fill" id="bar-love" style="width:0%"></div></div>
+          <span class="score-num" id="num-love">—</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">金　運</span>
+          <div class="score-track"><div class="score-fill" id="bar-money" style="width:0%"></div></div>
+          <span class="score-num" id="num-money">—</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">仕事運</span>
+          <div class="score-track"><div class="score-fill" id="bar-work" style="width:0%"></div></div>
+          <span class="score-num" id="num-work">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" class="btn-generate" id="btn-generate">
+      <span id="btn-text">✦ 鑑定PDFを生成する ✦</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+    <div class="error-msg" id="error-msg"></div>
+
+  </form>
+
+  <footer>
+    <p>✦ 星詠みChronicle ✦</p>
+    <p style="margin-top:8px">星の導きがあなたの道を照らしますように</p>
+  </footer>
+</div>
+
+<script>
+// ── Stars ───────────────────────────────────────────────────────────────
+(function () {
+  const cont = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star-dot';
+    const size = Math.random() * 3 + 1;
+    Object.assign(s.style, {
+      width: size + 'px', height: size + 'px',
+      top: Math.random() * 100 + '%',
+      left: Math.random() * 100 + '%',
+      '--dur': (Math.random() * 4 + 2) + 's',
+      animationDelay: (Math.random() * 4) + 's',
+      opacity: Math.random() * 0.7 + 0.1,
+    });
+    if (Math.random() > 0.6) s.style.background = '#c0bebe';
+    cont.appendChild(s);
+  }
+})();
+
+// ── Navigator selection ──────────────────────────────────────────────────
+let selectedNav = null;
+function selectNav(el, name) {
+  document.querySelectorAll('.nav-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  selectedNav = name;
+  tryPreview();
+}
+
+// ── Live preview ─────────────────────────────────────────────────────────
+let previewTimer = null;
+function tryPreview() {
+  const year = parseInt(document.getElementById('year').value);
+  const month = parseInt(document.getElementById('month').value);
+  const day = parseInt(document.getElementById('day').value);
+  const blood = document.getElementById('blood').value;
+  if (!year || !month || !day || !blood || !selectedNav) return;
+  if (year < 1920 || year > 2025 || month < 1 || month > 12 || day < 1 || day > 31) return;
+
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(async () => {
+    try {
+      const res = await fetch('/api/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year, month, day, blood, navigator: selectedNav, name: document.getElementById('name').value || 'ゲスト' }),
+      });
+      if (!res.ok) return;
+      const d = await res.json();
+      document.getElementById('preview-section').style.display = 'block';
+      document.getElementById('preview-type-name').textContent = '◆ ' + d.type_name + ' ◆';
+      document.getElementById('preview-type-keyword').textContent = d.type_keyword;
+      setBar('total', d.scores['総合']);
+      setBar('love',  d.scores['恋愛']);
+      setBar('money', d.scores['金運']);
+      setBar('work',  d.scores['仕事']);
+    } catch (e) {}
+  }, 400);
+}
+
+function setBar(id, score) {
+  document.getElementById('bar-' + id).style.width = score + '%';
+  document.getElementById('num-' + id).textContent = score + '点';
+}
+
+['year','month','day','blood'].forEach(id => {
+  document.getElementById(id).addEventListener('input', tryPreview);
+});
+
+// ── Form submit ──────────────────────────────────────────────────────────
+document.getElementById('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById('name').value.trim();
+  const year = parseInt(document.getElementById('year').value);
+  const month = parseInt(document.getElementById('month').value);
+  const day = parseInt(document.getElementById('day').value);
+  const blood = document.getElementById('blood').value;
+  const errEl = document.getElementById('error-msg');
+
+  errEl.style.display = 'none';
+
+  if (!name) return showError('お名前を入力してください。');
+  if (!year || year < 1920 || year > 2025) return showError('生年月日（年）を正しく入力してください。');
+  if (!month || month < 1 || month > 12) return showError('生年月日（月）を正しく入力してください。');
+  if (!day || day < 1 || day > 31) return showError('生年月日（日）を正しく入力してください。');
+  if (!blood) return showError('血液型を選択してください。');
+  if (!selectedNav) return showError('ナビゲーターを選択してください。');
+
+  const btn = document.getElementById('btn-generate');
+  const btnText = document.getElementById('btn-text');
+  const spinner = document.getElementById('spinner');
+  btn.disabled = true;
+  btnText.style.display = 'none';
+  spinner.style.display = 'block';
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ year, month, day, blood, navigator: selectedNav, name }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'サーバーエラーが発生しました。' }));
+      throw new Error(err.error || 'PDF生成に失敗しました。');
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hoshiyomi_${name}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    btn.disabled = false;
+    btnText.style.display = '';
+    spinner.style.display = 'none';
+  }
+});
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
