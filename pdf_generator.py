@@ -1,87 +1,104 @@
-"""PDF generation for 星詠みChronicle using reportlab."""
-import os
-import math
+"""PDF generation v2 for 星詠みChronicle — improved design with image support."""
+import os, math
 from io import BytesIO
-from reportlab.pdfgen import canvas
+from reportlab.pdfgen import canvas as _Canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.colors import HexColor, white, black
+from reportlab.lib.colors import HexColor
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase.pdfmetrics import stringWidth as SW
 from fortune_data import TYPES, get_navigator_message
 
-# ── Font setup ──────────────────────────────────────────────────────────
-FONT_PATHS = [
-    "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",
-    "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",
-    "/usr/share/fonts/opentype/ipafont-gothic/ipagp.ttf",
-]
-FONT_BOLD_PATHS = [
-    "/usr/share/fonts/opentype/ipafont-gothic/ipagp.ttf",
-    "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",
-]
+# ─── Image file mapping ───────────────────────────────────────────────────
+_BASE   = os.path.dirname(os.path.abspath(__file__))
+IMG_DIR = os.path.join(_BASE, "static", "images")
 
-_FONT_REGISTERED = False
-FONT_NAME       = "IPAGothic"
-FONT_BOLD_NAME  = "IPAGothicBold"
+TYPE_IMGS = {
+     1: "01SD炎の龍.png",    2: "02SD深海の人魚.png",  3: "03SD雷の天使.png",
+     4: "04SD森の精霊.png",   5: "05SD月の魔女.png",    6: "06SD太陽の勇者.png",
+     7: "07SD山の巨人.png",   8: "08SD嵐の鷲.png",     9: "09SD花の女神.png",
+    10: "10SD氷の龍.png",   11: "11SD大地の魔神.png", 12: "12SD星の賢者.png",
+}
+NAV_IMGS = {
+    "叢雲":   "叢雲SD.png",
+    "ノヴァ":  "ノヴァSD.png",
+    "フレイヤ": "フレイヤSD.png",
+    "グレイス": "グレイスSD.png",
+}
+def _type_img_path(tid): return os.path.join(IMG_DIR, TYPE_IMGS.get(tid, ""))
+def _nav_img_path(nav):  return os.path.join(IMG_DIR, NAV_IMGS.get(nav, ""))
 
+# ─── Font registration ─────────────────────────────────────────────────────
+FN  = "HoshiR"
+FNB = "HoshiB"
+_FONT_DONE = False
 
-def _register_fonts():
-    global _FONT_REGISTERED
-    if _FONT_REGISTERED:
+def _setup_fonts():
+    global _FONT_DONE
+    if _FONT_DONE:
         return
-    for path in FONT_PATHS:
-        if os.path.exists(path):
-            pdfmetrics.registerFont(TTFont(FONT_NAME, path))
+    for p in [
+        "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",
+        "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",
+    ]:
+        if os.path.exists(p):
+            pdfmetrics.registerFont(TTFont(FN, p))
             break
-    for path in FONT_BOLD_PATHS:
-        if os.path.exists(path):
-            pdfmetrics.registerFont(TTFont(FONT_BOLD_NAME, path))
+    for p in [
+        "/usr/share/fonts/opentype/ipafont-gothic/ipagp.ttf",
+        "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",
+    ]:
+        if os.path.exists(p):
+            pdfmetrics.registerFont(TTFont(FNB, p))
             break
-    _FONT_REGISTERED = True
+    _FONT_DONE = True
 
+# ─── Color palette ─────────────────────────────────────────────────────────
+BG   = HexColor("#0a0a2e")   # deep navy (user specified)
+BG2  = HexColor("#0f0f3a")
+BG3  = HexColor("#141448")
+PRP3 = HexColor("#1a1040")
+PRP2 = HexColor("#3a2060")
+PRP  = HexColor("#6a4ea8")
+GLD  = HexColor("#c9a84c")   # main gold (user specified)
+GLD2 = HexColor("#e8c060")
+GLD3 = HexColor("#f5d878")
+SLV  = HexColor("#c8c4bc")
+WHT  = HexColor("#f0ece8")
+DIM  = HexColor("#505070")
 
-# ── Color palette ────────────────────────────────────────────────────────
-C_BG        = HexColor("#0a0a1e")   # deep navy
-C_BG2       = HexColor("#0f0f2d")   # slightly lighter navy
-C_GOLD      = HexColor("#d4a843")   # antique gold
-C_GOLD2     = HexColor("#f0c040")   # bright gold
-C_WHITE     = HexColor("#f0eee8")   # warm white
-C_SILVER    = HexColor("#c0bebe")   # silver
-C_ACCENT    = HexColor("#7b5ea7")   # deep purple accent
-C_ACCENT2   = HexColor("#4a3080")   # darker purple
-C_DIM       = HexColor("#888888")   # dim gray
+W, H = A4   # 595.28 × 841.89
 
-W, H = A4   # 595.28 x 841.89 pt
+# ─── Layout constants ──────────────────────────────────────────────────────
+MG  = 22     # page margin
+BDG = 7      # double-border inner gap
+HDR_LINE = 808    # y of header separator line
+FTR_LINE = 50     # y of footer separator line
+CX1 = MG + BDG + 10   # content left x
+CX2 = W - MG - BDG - 10  # content right x
+CY1 = FTR_LINE + 10       # content bottom y
+CY2 = HDR_LINE - 10       # content top y
+CW  = CX2 - CX1           # content width (~528 pt)
 
+# ─── Type accent colors ────────────────────────────────────────────────────
+_TACC = {
+     1: "#e85020",  2: "#3388cc",  3: "#d4c820",  4: "#44aa44",
+     5: "#cc88bb",  6: "#ffcc22",  7: "#aa8855",  8: "#6699dd",
+     9: "#ff99bb", 10: "#55ccee", 11: "#cc7733", 12: "#9999ff",
+}
+def TC(tid): return HexColor(_TACC.get(tid, "#c9a84c"))
 
-# ── Drawing helpers ──────────────────────────────────────────────────────
+# ─── Primitive drawing helpers ─────────────────────────────────────────────
 
-def _bg(c: canvas.Canvas):
-    c.setFillColor(C_BG)
-    c.rect(0, 0, W, H, fill=1, stroke=0)
-
-
-def _gold_border(c: canvas.Canvas, margin=18, inset=8):
-    # Outer border
-    c.setStrokeColor(C_GOLD)
-    c.setLineWidth(1.5)
-    c.rect(margin, margin, W - 2*margin, H - 2*margin, fill=0, stroke=1)
-    # Inner border
-    c.setStrokeColor(C_GOLD2)
-    c.setLineWidth(0.5)
-    c.rect(margin + inset, margin + inset, W - 2*(margin+inset), H - 2*(margin+inset), fill=0, stroke=1)
-
-
-def _star(c: canvas.Canvas, cx, cy, r, points=5, color=None):
-    color = color or C_GOLD
-    c.setFillColor(color)
-    c.setStrokeColor(color)
+def _star(c, cx, cy, r, pts=5, col=None):
+    col = col or GLD
+    c.setFillColor(col)
     path = c.beginPath()
-    for i in range(points * 2):
-        angle = math.pi / 2 + i * math.pi / points
-        radius = r if i % 2 == 0 else r * 0.4
-        x = cx + radius * math.cos(angle)
-        y = cy + radius * math.sin(angle)
+    for i in range(pts * 2):
+        angle = math.pi / 2 + i * math.pi / pts
+        rad = r if i % 2 == 0 else r * 0.4
+        x = cx + rad * math.cos(angle)
+        y = cy + rad * math.sin(angle)
         if i == 0:
             path.moveTo(x, y)
         else:
@@ -90,35 +107,70 @@ def _star(c: canvas.Canvas, cx, cy, r, points=5, color=None):
     c.drawPath(path, fill=1, stroke=0)
 
 
-def _moon(c: canvas.Canvas, cx, cy, r, color=None):
-    color = color or C_GOLD
-    c.setFillColor(color)
-    # Full circle
+def _moon(c, cx, cy, r, col=None):
+    col = col or GLD
+    c.setFillColor(col)
     c.circle(cx, cy, r, fill=1, stroke=0)
-    # Cover with bg circle offset
-    c.setFillColor(C_BG)
-    c.circle(cx + r * 0.5, cy, r * 0.85, fill=1, stroke=0)
+    c.setFillColor(BG)
+    c.circle(cx + r * 0.55, cy, r * 0.82, fill=1, stroke=0)
 
 
-def _scatter_stars(c: canvas.Canvas, count=40, seed=42):
+def _scatter_stars(c, n=45, seed=0):
     import random
     rng = random.Random(seed)
-    for _ in range(count):
-        x = rng.uniform(30, W - 30)
-        y = rng.uniform(30, H - 30)
-        r = rng.uniform(1, 3)
-        alpha = rng.uniform(0.3, 1.0)
-        col = HexColor("#d4a843") if rng.random() > 0.5 else HexColor("#c0bebe")
+    for _ in range(n):
+        x = rng.uniform(MG + 15, W - MG - 15)
+        y = rng.uniform(MG + 15, H - MG - 15)
+        r = rng.uniform(0.8, 2.6)
+        alpha = rng.uniform(0.12, 0.60)
+        col = GLD if rng.random() > 0.45 else SLV
         c.setFillColor(col)
         c.setFillAlpha(alpha)
         c.circle(x, y, r, fill=1, stroke=0)
     c.setFillAlpha(1.0)
 
 
-def _text(c: canvas.Canvas, x, y, text, font=FONT_NAME, size=12, color=None, align="left"):
-    color = color or C_WHITE
-    c.setFont(font, size)
-    c.setFillColor(color)
+def _double_border(c, x, y, w, h, col=None, bg=None, gap=5, radius=6):
+    """Gold double-line border with optional background."""
+    col = col or GLD
+    if bg is not None:
+        c.setFillColor(bg)
+        c.roundRect(x, y, w, h, radius, fill=1, stroke=0)
+    c.setStrokeColor(col)
+    c.setLineWidth(1.5)
+    c.roundRect(x, y, w, h, radius, fill=0, stroke=1)
+    c.setStrokeColor(col)
+    c.setLineWidth(0.6)
+    c.roundRect(x + gap, y + gap, w - 2*gap, h - 2*gap,
+                max(radius - 2, 2), fill=0, stroke=1)
+
+
+def _corner_stars(c, x, y, w, h, r=7):
+    for px, py in [(x+14, y+14), (x+w-14, y+14), (x+14, y+h-14), (x+w-14, y+h-14)]:
+        _star(c, px, py, r, 4, GLD)
+
+
+def _hline(c, y, x1=None, x2=None, col=None, lw=0.7):
+    x1 = x1 if x1 is not None else MG + BDG + 5
+    x2 = x2 if x2 is not None else W - MG - BDG - 5
+    c.setStrokeColor(col or GLD)
+    c.setLineWidth(lw)
+    c.line(x1, y, x2, y)
+
+
+def _diamond_divider(c, y, x1=None, x2=None):
+    _hline(c, y, x1, x2)
+    xl = (x1 if x1 is not None else MG + BDG + 5)
+    xr = (x2 if x2 is not None else W - MG - BDG - 5)
+    _star(c, xl - 6, y, 5, 4, GLD)
+    _star(c, xr + 6, y, 5, 4, GLD)
+
+
+# ─── Text helpers ──────────────────────────────────────────────────────────
+
+def _t(c, x, y, text, font=None, size=12, col=None, align="left"):
+    c.setFont(font or FN, size)
+    c.setFillColor(col or WHT)
     if align == "center":
         c.drawCentredString(x, y, text)
     elif align == "right":
@@ -127,541 +179,711 @@ def _text(c: canvas.Canvas, x, y, text, font=FONT_NAME, size=12, color=None, ali
         c.drawString(x, y, text)
 
 
-def _divider(c: canvas.Canvas, y, margin=40):
-    c.setStrokeColor(C_GOLD)
-    c.setLineWidth(0.5)
-    c.line(margin, y, W - margin, y)
-    # Diamond ornaments
-    for dx in [margin - 6, W - margin + 6]:
-        _star(c, dx, y, 4, 4, C_GOLD)
+def _afs(text, font, max_s, min_s, max_w):
+    """Largest font size where text fits within max_w."""
+    s = max_s
+    while s >= min_s:
+        if SW(text, font, s) <= max_w:
+            return s
+        s -= 0.5
+    return min_s
 
 
-def _section_box(c: canvas.Canvas, x, y, w, h, title=""):
-    c.setFillColor(C_ACCENT2)
-    c.setStrokeColor(C_GOLD)
-    c.setLineWidth(0.8)
-    c.roundRect(x, y, w, h, 6, fill=1, stroke=1)
-    if title:
-        c.setFillColor(C_GOLD)
-        c.rect(x + 10, y + h - 14, len(title) * 14 + 10, 20, fill=1, stroke=0)
-        _text(c, x + 15, y + h - 10, title, FONT_BOLD_NAME, 11, C_BG)
-
-
-def _score_bar(c: canvas.Canvas, x, y, score: int, label: str, width=200):
-    bar_h = 14
-    # Label
-    _text(c, x, y + bar_h - 2, label, FONT_BOLD_NAME, 11, C_GOLD)
-    bar_x = x + 80
-    # Background bar
-    c.setFillColor(HexColor("#1a1a3e"))
-    c.setStrokeColor(C_GOLD)
-    c.setLineWidth(0.5)
-    c.roundRect(bar_x, y, width, bar_h, 4, fill=1, stroke=1)
-    # Filled portion
-    fill_w = width * score / 100
-    grad_color = (
-        HexColor("#8B0000") if score < 50 else
-        HexColor("#8B6914") if score < 70 else
-        HexColor("#d4a843") if score < 85 else
-        HexColor("#f0c040")
-    )
-    c.setFillColor(grad_color)
-    c.setStrokeColor(grad_color)
-    c.roundRect(bar_x, y, fill_w, bar_h, 4, fill=1, stroke=0)
-    # Score text
-    _text(c, bar_x + width + 10, y + bar_h - 3, f"{score}点", FONT_BOLD_NAME, 12, C_GOLD2)
-
-
-def _wrap_text(c: canvas.Canvas, x, y, text, font, size, color, max_width, line_height):
-    """Simple word wrap for Japanese text (wraps by character count)."""
-    c.setFont(font, size)
-    c.setFillColor(color)
-    chars_per_line = int(max_width / (size * 0.9))
+def _wrap(text, font, size, max_w):
+    """Character-accurate text wrapping for Japanese."""
     lines = []
     for para in text.split("\n"):
         if not para:
             lines.append("")
             continue
-        while len(para) > chars_per_line:
-            lines.append(para[:chars_per_line])
-            para = para[chars_per_line:]
-        lines.append(para)
+        cur = ""
+        for ch in para:
+            if SW(cur + ch, font, size) <= max_w:
+                cur += ch
+            else:
+                if cur:
+                    lines.append(cur)
+                cur = ch
+        if cur:
+            lines.append(cur)
+    return lines
 
-    current_y = y
-    for line in lines:
-        c.drawString(x, current_y, line)
-        current_y -= line_height
-    return current_y
 
-
-def _type_symbol(c: canvas.Canvas, cx, cy, type_id: int):
-    """Draw a decorative symbol for the 12 type."""
-    symbols = {
-        1: ("炎", C_GOLD2),  2: ("海", HexColor("#4488cc")),
-        3: ("雷", HexColor("#cccc44")), 4: ("森", HexColor("#44aa44")),
-        5: ("月", HexColor("#ccaabb")), 6: ("陽", HexColor("#ffcc44")),
-        7: ("岳", HexColor("#aa8866")), 8: ("嵐", HexColor("#88aacc")),
-        9: ("花", HexColor("#ffaacc")), 10: ("氷", HexColor("#88ccee")),
-        11: ("地", HexColor("#aa6622")), 12: ("星", HexColor("#aaaaff")),
-    }
-    char, col = symbols.get(type_id, ("？", C_GOLD))
-    # Outer glow circle
-    c.setFillColor(HexColor("#1a1a3e"))
-    c.setStrokeColor(col)
-    c.setLineWidth(2)
-    c.circle(cx, cy, 55, fill=1, stroke=1)
-    c.setStrokeColor(C_GOLD)
-    c.setLineWidth(0.8)
-    c.circle(cx, cy, 62, fill=0, stroke=1)
-
-    # Decorative stars around circle
-    for i in range(8):
-        angle = i * math.pi / 4
-        sx = cx + 72 * math.cos(angle)
-        sy = cy + 72 * math.sin(angle)
-        _star(c, sx, sy, 4, 5, C_GOLD if i % 2 == 0 else C_SILVER)
-
-    # Main character
-    c.setFont(FONT_BOLD_NAME, 52)
+def _draw_wrapped(c, text, x, y, font, size, col, max_w, lh, bottom=None):
+    """Draw wrapped text block; returns final y position."""
+    c.setFont(font, size)
     c.setFillColor(col)
-    c.drawCentredString(cx, cy - 18, char)
+    for line in _wrap(text, font, size, max_w):
+        if bottom is not None and y - lh < bottom:
+            break
+        c.drawString(x, y, line)
+        y -= lh
+    return y
 
 
-# ── Pages ────────────────────────────────────────────────────────────────
+# ─── Page base (background + full-page double border) ─────────────────────
 
-def _page_cover(c: canvas.Canvas, data: dict):
-    _bg(c)
-    _scatter_stars(c, 60, seed=data["type_id"] * 13)
-    _gold_border(c)
+def _page_base(c, seed=0):
+    c.setFillColor(BG)
+    c.rect(0, 0, W, H, fill=1, stroke=0)
+    _scatter_stars(c, n=50, seed=seed)
+    # Outer border
+    c.setStrokeColor(GLD)
+    c.setLineWidth(1.8)
+    c.rect(MG, MG, W - 2*MG, H - 2*MG, fill=0, stroke=1)
+    # Inner border
+    c.setStrokeColor(GLD)
+    c.setLineWidth(0.65)
+    c.rect(MG + BDG, MG + BDG, W - 2*(MG + BDG), H - 2*(MG + BDG), fill=0, stroke=1)
+    _corner_stars(c, MG, MG, W - 2*MG, H - 2*MG, r=9)
 
-    # Top decorative moon
-    _moon(c, W - 80, H - 70, 40, C_GOLD)
-    _star(c, 80, H - 70, 18, 5, C_GOLD)
-    _star(c, 60, H - 120, 10, 5, C_SILVER)
-    _star(c, 110, H - 45, 7, 5, C_GOLD2)
 
-    # Title logo
-    _text(c, W/2, H - 90, "星 詠 み Chronicle", FONT_BOLD_NAME, 22, C_GOLD2, "center")
-    _text(c, W/2, H - 110, "〜 Personal Fortune Reading 〜", FONT_NAME, 10, C_SILVER, "center")
-    _divider(c, H - 125, margin=60)
+def _page_header(c, left="", center="", right=""):
+    """Standard header band (used on content pages 2–5)."""
+    _hline(c, HDR_LINE, lw=0.9)
+    if left:
+        _t(c, MG + BDG + 12, HDR_LINE + 10, left, FN, 8, GLD)
+    if center:
+        _t(c, W/2, HDR_LINE + 12, center, FNB, 11, GLD2, "center")
+    if right:
+        _t(c, W - MG - BDG - 12, HDR_LINE + 10, right, FN, 8, SLV, "right")
+    # Small stars flanking center
+    _star(c, W/2 - SW(center, FNB, 11)/2 - 14, HDR_LINE + 16, 5, 5, GLD)
+    _star(c, W/2 + SW(center, FNB, 11)/2 + 14, HDR_LINE + 16, 5, 5, GLD)
 
-    # Name
+
+def _page_footer(c, page_num=1, total=6):
+    """Standard footer band."""
+    _hline(c, FTR_LINE, lw=0.8)
+    _t(c, W/2, FTR_LINE - 18, f"― {page_num} / {total} ―", FN, 9, DIM, "center")
+    _t(c, MG + BDG + 12, FTR_LINE - 18, "星詠みChronicle", FN, 8, DIM)
+    _star(c, MG + BDG + 6, FTR_LINE - 10, 4, 5, GLD)
+    _star(c, W - MG - BDG - 6, FTR_LINE - 10, 4, 5, GLD)
+
+
+# ─── Image drawing with fallback frame ────────────────────────────────────
+
+def _draw_img_raw(c, path, x, y, w, h):
+    """Draw image; returns True on success."""
+    if path and os.path.exists(path):
+        try:
+            c.drawImage(path, x, y, w, h,
+                        preserveAspectRatio=True, anchor='c', mask='auto')
+            return True
+        except Exception:
+            pass
+    return False
+
+
+def _img_or_frame(c, path, x, y, w, h, label="", type_id=None, nav=None, frame_col=None):
+    """Draw image or golden decorative fallback frame."""
+    if _draw_img_raw(c, path, x, y, w, h):
+        return
+
+    fc = frame_col or (TC(type_id) if type_id else GLD)
+    # Background
+    c.setFillColor(PRP3)
+    c.roundRect(x, y, w, h, 10, fill=1, stroke=0)
+    # Double border
+    _double_border(c, x, y, w, h, col=fc, gap=6, radius=8)
+    # Corner ornaments
+    _corner_stars(c, x, y, w, h, r=6)
+
+    cx, cy = x + w/2, y + h/2
+    r = min(w, h) * 0.28
+    c.setFillColor(PRP2)
+    c.circle(cx, cy, r + 3, fill=1, stroke=0)
+    c.setStrokeColor(fc)
+    c.setLineWidth(1.2)
+    c.circle(cx, cy, r + 3, fill=0, stroke=1)
+
+    # Center symbol
+    if type_id:
+        syms = {1:"炎",2:"海",3:"雷",4:"森",5:"月",6:"陽",
+                7:"岳",8:"嵐",9:"花",10:"氷",11:"地",12:"星"}
+        sym = syms.get(type_id, "✦")
+        fs = min(w, h) * 0.22
+        _t(c, cx, cy - fs*0.35, sym, FNB, fs, TC(type_id), "center")
+    elif nav:
+        nav_sym = {"叢雲":"雲", "ノヴァ":"星", "フレイヤ":"猫", "グレイス":"氷"}
+        sym = nav_sym.get(nav, "✦")
+        fs = min(w, h) * 0.22
+        _t(c, cx, cy - fs*0.35, sym, FNB, fs, GLD2, "center")
+
+    # Label at bottom of frame
+    if label:
+        fs2 = _afs(label, FN, 10, 7, w - 16)
+        _t(c, cx, y + 10, label, FN, fs2, SLV, "center")
+
+
+# ─── Score bar component ───────────────────────────────────────────────────
+
+def _score_bar(c, x, y, score, bar_w=240, bar_h=13):
+    """Draw a score progress bar (x,y = bottom-left of bar)."""
+    # Track
+    c.setFillColor(PRP3)
+    c.setStrokeColor(GLD)
+    c.setLineWidth(0.6)
+    c.roundRect(x, y, bar_w, bar_h, bar_h / 2, fill=1, stroke=1)
+    # Fill
+    fw = bar_w * score / 100
+    if fw > 2:
+        fc = GLD  if score >= 85 else \
+             HexColor("#9b7914") if score >= 70 else PRP
+        c.setFillColor(fc)
+        c.roundRect(x, y, fw, bar_h, bar_h / 2, fill=1, stroke=0)
+        # Shine strip
+        c.setFillColor(WHT)
+        c.setFillAlpha(0.15)
+        shine_h = bar_h * 0.35
+        c.roundRect(x + 2, y + bar_h * 0.55, max(fw - 4, 0), shine_h, 2,
+                    fill=1, stroke=0)
+        c.setFillAlpha(1.0)
+        # Bright tip
+        tip_w = min(18, fw)
+        c.setFillColor(GLD3)
+        c.setFillAlpha(0.5)
+        c.roundRect(x + fw - tip_w, y, tip_w, bar_h, bar_h / 2, fill=1, stroke=0)
+        c.setFillAlpha(1.0)
+    # Score label
+    _t(c, x + bar_w + 9, y + bar_h - 1, f"{score}点", FNB, 12, GLD3)
+    # Star rating
+    stars = min(5, max(1, round(score / 20)))
+    for i in range(5):
+        _star(c, x + bar_w + 55 + i * 15, y + bar_h/2, 6, 5,
+              GLD3 if i < stars else DIM)
+
+
+# ─── Section box component ─────────────────────────────────────────────────
+
+def _section_box(c, x, y, w, h, title="", accent=None):
+    """Filled section box with double border, accent bar, and title tab."""
+    accent = accent or GLD
+    # Fill
+    c.setFillColor(BG3)
+    c.roundRect(x, y, w, h, 6, fill=1, stroke=0)
+    # Double border
+    _double_border(c, x, y, w, h, col=accent, gap=4, radius=6)
+    # Left accent stripe
+    c.setFillColor(accent)
+    c.roundRect(x, y, 5, h, 3, fill=1, stroke=0)
+    # Title badge
+    if title:
+        tw = SW(title, FNB, 10) + 16
+        c.setFillColor(accent)
+        c.roundRect(x + 12, y + h - 19, tw, 20, 5, fill=1, stroke=0)
+        _t(c, x + 12 + tw/2, y + h - 14, title, FNB, 10, BG, "center")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# PAGE 0 ── COVER
+# ════════════════════════════════════════════════════════════════════════════
+
+def _page_cover(c, data):
+    tid = data["type_id"]
+    _page_base(c, seed=tid * 17)
+
+    acc = TC(tid)
     name = data["name"]
-    _text(c, W/2, H - 165, f"◈  {name}  様", FONT_BOLD_NAME, 20, C_GOLD2, "center")
-    _text(c, W/2, H - 185, "個 人 鑑 定 書", FONT_BOLD_NAME, 14, C_SILVER, "center")
 
-    # Type symbol (center)
-    _type_symbol(c, W/2, H/2 + 30, data["type_id"])
+    # ── Decorative moon (top-right) ──
+    _moon(c, W - 68, H - 68, 44, GLD)
+    _star(c, 68, H - 68, 22, 5, GLD)
+    _star(c, 52, H - 118, 12, 5, SLV)
+    _star(c, 105, H - 48, 7, 5, GLD2)
 
-    # Type name
-    type_name = data["type"]["name"]
-    _text(c, W/2, H/2 - 60, f"◆ {type_name} ◆", FONT_BOLD_NAME, 26, C_GOLD2, "center")
-    _text(c, W/2, H/2 - 82, data["type"]["keyword"], FONT_NAME, 12, C_SILVER, "center")
+    # ── Site title ──
+    title_text = "星 詠 み  Chronicle"
+    title_fs = _afs(title_text, FNB, 26, 14, CW - 60)
+    _t(c, W/2, H - 72, title_text, FNB, title_fs, GLD2, "center")
+    _t(c, W/2, H - 92, "〜  Personal Fortune Reading  〜", FN, 9, SLV, "center")
+    _diamond_divider(c, H - 105)
 
-    _divider(c, H/2 - 105, margin=60)
+    # ── Person name ──
+    name_text = f"◈  {name}  様"
+    name_fs = _afs(name_text, FNB, 22, 12, CW - 80)
+    _t(c, W/2, H - 138, name_text, FNB, name_fs, GLD3, "center")
+    _t(c, W/2, H - 160, "個  人  鑑  定  書", FNB, 13, SLV, "center")
 
-    # Birth & type info box
-    bx, by = 80, H/2 - 175
-    c.setFillColor(C_ACCENT2)
-    c.setStrokeColor(C_GOLD)
+    # ── Character image (large, centered) ──
+    img_cx = W / 2
+    img_cy = H - 345      # center of image circle
+    img_r  = 128          # radius of circular image area
+    iw = img_r * 2 - 12
+    ih = img_r * 2 - 12
+    img_path = _type_img_path(tid)
+
+    # Glow rings
+    for i in range(5, 0, -1):
+        c.setFillColor(acc)
+        c.setFillAlpha(0.04 * i)
+        c.circle(img_cx, img_cy, img_r + i * 14, fill=1, stroke=0)
+    c.setFillAlpha(1.0)
+
+    # Dark circle backing
+    c.setFillColor(PRP3)
+    c.circle(img_cx, img_cy, img_r + 5, fill=1, stroke=0)
+
+    # Image or fallback symbol
+    if not _draw_img_raw(c, img_path, img_cx - iw/2, img_cy - ih/2, iw, ih):
+        syms = {1:"炎",2:"海",3:"雷",4:"森",5:"月",6:"陽",
+                7:"岳",8:"嵐",9:"花",10:"氷",11:"地",12:"星"}
+        c.setFillColor(PRP2)
+        c.circle(img_cx, img_cy, img_r - 8, fill=1, stroke=0)
+        _t(c, img_cx, img_cy - 24, syms.get(tid, "✦"), FNB, 64, acc, "center")
+
+    # Gold ring
+    c.setStrokeColor(GLD)
+    c.setLineWidth(2.2)
+    c.circle(img_cx, img_cy, img_r + 5, fill=0, stroke=1)
+    c.setStrokeColor(GLD2)
     c.setLineWidth(0.8)
-    c.roundRect(bx, by, W - 160, 58, 8, fill=1, stroke=1)
+    c.circle(img_cx, img_cy, img_r + 14, fill=0, stroke=1)
+    # Ring stars
+    for i in range(8):
+        angle = math.pi/8 + i * math.pi/4
+        sx = img_cx + (img_r + 24) * math.cos(angle)
+        sy = img_cy + (img_r + 24) * math.sin(angle)
+        _star(c, sx, sy, 5, 5, GLD if i % 2 == 0 else SLV)
 
-    _text(c, W/2, by + 38, f"生年月日：{data['birth']}　血液型：{data['blood']['type']}型", FONT_NAME, 11, C_WHITE, "center")
-    _text(c, W/2, by + 18, f"星座：{data['zodiac']['name']}　干支：{data['chinese']['name']}　数秘：{data['life_path']['number']}", FONT_NAME, 11, C_WHITE, "center")
+    # ── Type name ──
+    bottom_of_img = img_cy - img_r - 5
+    type_text = f"◆  {data['type']['name']}  ◆"
+    type_fs = _afs(type_text, FNB, 28, 15, CW - 80)
+    _t(c, W/2, bottom_of_img - 22, type_text, FNB, type_fs, GLD3, "center")
+    kw_text = data["type"]["keyword"]
+    _t(c, W/2, bottom_of_img - 44, kw_text, FN, 11, SLV, "center")
+    _diamond_divider(c, bottom_of_img - 58)
 
-    # Navigator
-    _text(c, W/2, by - 25, f"ナビゲーター：{data['navigator']}", FONT_NAME, 11, C_GOLD, "center")
+    # ── Main info box ──
+    box_top = bottom_of_img - 68
+    box_h = 68
+    box_y = box_top - box_h
+    _double_border(c, CX1 + 18, box_y, CW - 36, box_h, bg=PRP2, gap=5)
+    _t(c, W/2, box_y + box_h - 22,
+       f"生年月日：{data['birth']}　血液型：{data['blood']['type']}型",
+       FN, 11, WHT, "center")
+    _t(c, W/2, box_y + box_h - 42,
+       f"星座：{data['zodiac']['name']}　干支：{data['chinese']['name']}　数秘：{data['life_path']['number']}",
+       FN, 11, WHT, "center")
+    _t(c, W/2, box_y + 10,
+       f"鑑定月：{data['month_str']}",
+       FN, 10, GLD, "center")
 
-    # Bottom
-    _divider(c, 75, margin=60)
-    _text(c, W/2, 55, f"鑑定月：{data['month_str']}", FONT_NAME, 10, C_SILVER, "center")
-    _star(c, 50, 50, 8, 5, C_GOLD)
-    _star(c, W - 50, 50, 8, 5, C_GOLD)
+    # ── Navigator strip ──
+    nav_y = box_y - 20
+    nav_colors = {"叢雲": HexColor("#8888ff"), "ノヴァ": HexColor("#ff8844"),
+                  "フレイヤ": HexColor("#66cc66"), "グレイス": HexColor("#88aacc")}
+    nc = nav_colors.get(data["navigator"], GLD)
+    _t(c, W/2, nav_y, f"✦  ナビゲーター：{data['navigator']}  ✦", FN, 11, nc, "center")
+
+    # Bottom corner stars
+    _star(c, MG + 18, MG + 18, 10, 5, GLD)
+    _star(c, W - MG - 18, MG + 18, 10, 5, GLD)
 
 
-def _page_four_axis(c: canvas.Canvas, data: dict):
-    _bg(c)
-    _scatter_stars(c, 30, seed=7)
-    _gold_border(c)
+# ════════════════════════════════════════════════════════════════════════════
+# PAGE 1 ── 四軸分析
+# ════════════════════════════════════════════════════════════════════════════
 
-    # Page title
-    _star(c, W/2 - 95, H - 65, 8, 5, C_GOLD)
-    _star(c, W/2 + 95, H - 65, 8, 5, C_GOLD)
-    _text(c, W/2, H - 75, "◆ 四 軸 分 析 ◆", FONT_BOLD_NAME, 20, C_GOLD2, "center")
-    _text(c, W/2, H - 95, "あなたを形作る4つの星の流れ", FONT_NAME, 10, C_SILVER, "center")
-    _divider(c, H - 108)
+def _page_four_axis(c, data):
+    _page_base(c, seed=7)
+    _page_header(c, "星詠みChronicle", "◆  四 軸 分 析  ◆", data["name"] + " 様")
+    _page_footer(c, 2, 6)
+
+    # Sub-title
+    _t(c, W/2, CY2 - 14, "あなたを形作る 4 つの力の流れ", FN, 10, SLV, "center")
+    _diamond_divider(c, CY2 - 28)
 
     sections = [
-        ("星　座", data["zodiac"]["symbol"] + " " + data["zodiac"]["name"],
-         f'元素：{data["zodiac"]["element"]}　キーワード：{data["zodiac"]["keyword"]}',
+        ("星　座",
+         data["zodiac"]["symbol"] + "  " + data["zodiac"]["name"],
+         f"元素：{data['zodiac']['element']}　キーワード：{data['zodiac']['keyword']}",
          data["zodiac"]["desc"],
-         HexColor("#ffd700")),
-        ("干　支", data["chinese"]["name"],
-         f'元素：{data["chinese"]["element"]}　キーワード：{data["chinese"]["keyword"]}',
+         HexColor("#ffe060")),
+        ("干　支",
+         data["chinese"]["name"],
+         f"元素：{data['chinese']['element']}　キーワード：{data['chinese']['keyword']}",
          data["chinese"]["desc"],
-         HexColor("#e8aa44")),
-        ("数 秘 術", f'ライフパスナンバー　{data["life_path"]["number"]}',
-         f'キーワード：{data["life_path"]["keyword"]}',
+         HexColor("#e8b040")),
+        ("数 秘 術",
+         f"ライフパスナンバー  {data['life_path']['number']}",
+         f"キーワード：{data['life_path']['keyword']}",
          data["life_path"]["desc"],
-         HexColor("#cc88ff")),
-        ("血 液 型", f'{data["blood"]["type"]}型',
-         f'キーワード：{data["blood"]["keyword"]}',
+         HexColor("#c088ff")),
+        ("血 液 型",
+         f"{data['blood']['type']} 型",
+         f"キーワード：{data['blood']['keyword']}",
          data["blood"]["desc"],
          HexColor("#ff8888")),
     ]
 
-    box_h = 140
-    gap   = 15
-    start_y = H - 125
+    n   = len(sections)
+    gap = 12
+    top_y  = CY2 - 36
+    avail  = top_y - CY1
+    sh     = (avail - gap * (n - 1)) / n   # section height ≈ 162 pt
 
     for i, (title, main, sub, desc, accent) in enumerate(sections):
-        y_top = start_y - i * (box_h + gap)
-        bx, bw = 35, W - 70
+        sy = top_y - i * (sh + gap) - sh
 
-        # Box background
-        c.setFillColor(C_ACCENT2)
+        _section_box(c, CX1, sy, CW, sh, title, accent)
+
+        # Main label (auto-sized)
+        main_fs = _afs(main, FNB, 19, 10, CW - 30)
+        _t(c, CX1 + 18, sy + sh - 36, main, FNB, main_fs, WHT)
+
+        # Sub label
+        sub_fs = _afs(sub, FN, 10, 8, CW - 30)
+        _t(c, CX1 + 18, sy + sh - 55, sub, FN, sub_fs, GLD)
+
+        # Thin accent line
         c.setStrokeColor(accent)
-        c.setLineWidth(1)
-        c.roundRect(bx, y_top - box_h, bw, box_h, 8, fill=1, stroke=1)
+        c.setLineWidth(0.35)
+        c.line(CX1 + 14, sy + sh - 65, CX1 + CW - 14, sy + sh - 65)
 
-        # Left accent bar
-        c.setFillColor(accent)
-        c.roundRect(bx, y_top - box_h, 5, box_h, 3, fill=1, stroke=0)
-
-        # Title badge
-        badge_w = len(title) * 13 + 14
-        c.setFillColor(accent)
-        c.roundRect(bx + 14, y_top - 14, badge_w, 22, 5, fill=1, stroke=0)
-        _text(c, bx + 14 + badge_w/2, y_top - 9, title, FONT_BOLD_NAME, 11, C_BG, "center")
-
-        # Main text
-        _text(c, bx + 25, y_top - 38, main, FONT_BOLD_NAME, 17, C_WHITE)
-
-        # Sub text
-        _text(c, bx + 25, y_top - 60, sub, FONT_NAME, 10, C_GOLD)
-
-        # Divider line
-        c.setStrokeColor(accent)
-        c.setLineWidth(0.4)
-        c.line(bx + 15, y_top - 72, bx + bw - 15, y_top - 72)
-
-        # Description (wrapped)
-        chars = int((bw - 50) / 10)
-        desc_lines = []
-        tmp = desc
-        while len(tmp) > chars:
-            desc_lines.append(tmp[:chars])
-            tmp = tmp[chars:]
-        desc_lines.append(tmp)
-
-        dy = y_top - 88
-        for line in desc_lines:
-            _text(c, bx + 25, dy, line, FONT_NAME, 10, C_SILVER)
-            dy -= 15
-
-    # Bottom decoration
-    _divider(c, 45)
-    _text(c, W/2, 28, "Page 1", FONT_NAME, 8, C_DIM, "center")
+        # Description (wrapped, truncated to box)
+        _draw_wrapped(c, desc, CX1 + 18, sy + sh - 82,
+                      FN, 10.5, SLV, CW - 32, 16, sy + 8)
 
 
-def _page_fortune(c: canvas.Canvas, data: dict):
-    _bg(c)
-    _scatter_stars(c, 25, seed=99)
-    _gold_border(c)
+# ════════════════════════════════════════════════════════════════════════════
+# PAGE 2 ── 今月の運勢
+# ════════════════════════════════════════════════════════════════════════════
 
-    _star(c, W/2 - 85, H - 65, 8, 5, C_GOLD)
-    _star(c, W/2 + 85, H - 65, 8, 5, C_GOLD)
-    _text(c, W/2, H - 75, "◆ 今 月 の 運 勢 ◆", FONT_BOLD_NAME, 20, C_GOLD2, "center")
-    _text(c, W/2, H - 95, f"〜 {data['month_str']} 〜", FONT_NAME, 11, C_SILVER, "center")
-    _divider(c, H - 108)
+def _page_fortune(c, data):
+    _page_base(c, seed=99)
+    tid = data["type_id"]
+    _page_header(c, "星詠みChronicle", "◆  今 月 の 運 勢  ◆", data["month_str"])
+    _page_footer(c, 3, 6)
 
-    categories = ["総合", "恋愛", "金運", "仕事"]
-    cat_labels  = {"総合": "総合運", "恋愛": "恋愛運", "金運": "金　運", "仕事": "仕事運"}
-    cat_icons   = {"総合": "✦", "恋愛": "❤", "金運": "◈", "仕事": "★"}
+    # Small type image — top right
+    si_size = 82
+    si_x = CX2 - si_size
+    si_y = CY2 - si_size
+    _img_or_frame(c, _type_img_path(tid), si_x, si_y, si_size, si_size,
+                  data["type"]["name"], type_id=tid)
+    # Thin ring around image
+    c.setStrokeColor(TC(tid))
+    c.setLineWidth(1.0)
+    c.roundRect(si_x, si_y, si_size, si_size, 6, fill=0, stroke=1)
 
-    start_y = H - 130
-    block_h = 148
-    gap     = 12
+    # Sub-title (avoids overlapping image)
+    sub_x2 = si_x - 10
+    sub_text = f"◈  {data['name']}様の今月の星の流れ"
+    sub_fs = _afs(sub_text, FN, 11, 8, sub_x2 - CX1)
+    _t(c, CX1, CY2 - 14, sub_text, FN, sub_fs, GLD)
+    _diamond_divider(c, CY2 - 28)
 
-    for i, cat in enumerate(categories):
+    cats   = ["総合", "恋愛", "金運", "仕事"]
+    labels = {"総合": "総合運", "恋愛": "恋愛運", "金運": "金　運", "仕事": "仕事運"}
+    icons  = {"総合": "✦", "恋愛": "♥", "金運": "◈", "仕事": "★"}
+
+    n    = len(cats)
+    gap  = 10
+    top_y = CY2 - 36
+    avail = top_y - CY1
+    bh    = (avail - gap * (n - 1)) / n   # block height ≈ 163 pt
+
+    for i, cat in enumerate(cats):
         score = data["scores"][cat]
         msg   = data["type"]["fortune_messages"][cat]
-        y_top = start_y - i * (block_h + gap)
+        by    = top_y - i * (bh + gap) - bh
 
-        bx, bw = 35, W - 70
-        # Block bg
-        c.setFillColor(C_BG2)
-        c.setStrokeColor(C_GOLD)
-        c.setLineWidth(0.8)
-        c.roundRect(bx, y_top - block_h, bw, block_h, 8, fill=1, stroke=1)
+        # Block background + gold border
+        c.setFillColor(BG2)
+        c.roundRect(CX1, by, CW, bh, 7, fill=1, stroke=0)
+        c.setStrokeColor(GLD)
+        c.setLineWidth(0.9)
+        c.roundRect(CX1, by, CW, bh, 7, fill=0, stroke=1)
+        # Inner thin border
+        c.setStrokeColor(GLD)
+        c.setLineWidth(0.35)
+        c.roundRect(CX1 + 4, by + 4, CW - 8, bh - 8, 4, fill=0, stroke=1)
+        # Left accent stripe
+        c.setFillColor(TC(tid))
+        c.roundRect(CX1, by, 5, bh, 3, fill=1, stroke=0)
 
         # Category header
-        label = cat_labels[cat]
-        icon  = cat_icons[cat]
-        _text(c, bx + 20, y_top - 22, f"{icon}  {label}", FONT_BOLD_NAME, 14, C_GOLD2)
+        cat_text = f"{icons[cat]}  {labels[cat]}"
+        _t(c, CX1 + 16, by + bh - 22, cat_text, FNB, 14, GLD2)
 
-        # Score bar
-        _score_bar(c, bx + 20, y_top - 48, score, "運勢スコア", width=260)
+        # Score bar  (label + bar)
+        bar_y  = by + bh - 44   # bar bottom y
+        _t(c, CX1 + 16, bar_y + 13, "スコア", FN, 9, GLD)
+        _score_bar(c, CX1 + 62, bar_y, score, bar_w=215, bar_h=13)
 
-        # Rank stars
-        star_count = min(5, max(1, int(score / 20)))
-        star_x = bx + 360
-        for s in range(5):
-            col = C_GOLD2 if s < star_count else C_DIM
-            _star(c, star_x + s * 18, y_top - 42, 7, 5, col)
+        # Thin separator
+        c.setStrokeColor(PRP2)
+        c.setLineWidth(0.35)
+        c.line(CX1 + 12, by + bh - 55, CX1 + CW - 12, by + bh - 55)
 
-        # Divider
-        c.setStrokeColor(C_ACCENT)
-        c.setLineWidth(0.3)
-        c.line(bx + 15, y_top - 60, bx + bw - 15, y_top - 60)
-
-        # Message (wrapped)
-        chars = int((bw - 50) / 10)
-        lines = []
-        tmp = msg
-        while len(tmp) > chars:
-            lines.append(tmp[:chars])
-            tmp = tmp[chars:]
-        lines.append(tmp)
-
-        dy = y_top - 78
-        for line in lines:
-            _text(c, bx + 20, dy, line, FONT_NAME, 10, C_WHITE)
-            dy -= 15
-
-    _divider(c, 45)
-    _text(c, W/2, 28, "Page 2", FONT_NAME, 8, C_DIM, "center")
+        # Message text (wrapped, constrained to box)
+        _draw_wrapped(c, msg, CX1 + 16, by + bh - 70,
+                      FN, 10, WHT, CW - 28, 15, by + 7)
 
 
-def _page_navigator(c: canvas.Canvas, data: dict):
-    _bg(c)
-    _scatter_stars(c, 35, seed=55)
-    _gold_border(c)
+# ════════════════════════════════════════════════════════════════════════════
+# PAGE 3 ── ナビゲーターメッセージ
+# ════════════════════════════════════════════════════════════════════════════
 
-    nav  = data["navigator"]
-    nav_data = get_navigator_message(nav, data["type_id"], data["name"])
+def _page_navigator(c, data):
+    _page_base(c, seed=55)
+    nav     = data["navigator"]
+    nav_msg = get_navigator_message(nav, data["type_id"], data["name"])
 
-    _star(c, 60, H - 65, 12, 5, C_GOLD)
-    _star(c, W - 60, H - 65, 12, 5, C_GOLD)
-    _text(c, W/2, H - 68, f"◆ ナビゲーター {nav} より ◆", FONT_BOLD_NAME, 18, C_GOLD2, "center")
-    _text(c, W/2, H - 90, nav_data["header"], FONT_NAME, 11, C_SILVER, "center")
-    _divider(c, H - 103)
+    nav_accent = {
+        "叢雲":  HexColor("#9999ff"),
+        "ノヴァ": HexColor("#ff8844"),
+        "フレイヤ": HexColor("#66cc66"),
+        "グレイス": HexColor("#88bbcc"),
+    }.get(nav, GLD)
 
-    # Navigator portrait box
-    nav_colors = {
-        "叢雲": (HexColor("#1a1a4e"), HexColor("#8888ff")),
-        "ノヴァ": (HexColor("#2a1a1a"), HexColor("#ff6644")),
-        "フレイヤ": (HexColor("#1a2a1a"), HexColor("#66aa66")),
-        "グレイス": (HexColor("#1e1e2e"), HexColor("#aaaacc")),
-    }
-    nav_bg, nav_accent = nav_colors.get(nav, (C_ACCENT2, C_GOLD))
-    nav_emojis = {"叢雲": "🌙", "ノヴァ": "⭐", "フレイヤ": "🐱", "グレイス": "❄"}
+    _page_header(c, "星詠みChronicle",
+                 f"◆  {nav}  よ り  ◆", data["name"] + " 様")
+    _page_footer(c, 4, 6)
 
-    # Portrait circle
-    c.setFillColor(nav_bg)
-    c.setStrokeColor(nav_accent)
-    c.setLineWidth(2)
-    c.circle(W/2, H - 215, 65, fill=1, stroke=1)
-    c.setStrokeColor(C_GOLD)
-    c.setLineWidth(0.8)
-    c.circle(W/2, H - 215, 74, fill=0, stroke=1)
+    # Section header
+    _t(c, W/2, CY2 - 15, nav_msg["header"], FNB, 13, GLD2, "center")
+    _diamond_divider(c, CY2 - 30)
 
-    # Navigator name large
-    _text(c, W/2, H - 208, nav, FONT_BOLD_NAME, 28, nav_accent, "center")
+    content_top = CY2 - 38
 
-    # Nav intro
-    _text(c, W/2, H - 300, nav_data["intro"], FONT_NAME, 11, C_GOLD, "center")
+    # ── LEFT COLUMN: Navigator cat image ──
+    lw  = 188                        # left column width
+    lx1 = CX1
+    lx2 = CX1 + lw
 
-    _divider(c, H - 315, margin=60)
+    img_h = min(content_top - CY1 - 5, lw + 50)   # square-ish
+    img_y = content_top - img_h
+
+    nav_path = _nav_img_path(nav)
+    # Frame background
+    c.setFillColor(PRP3)
+    c.roundRect(lx1, img_y, lw, img_h, 10, fill=1, stroke=0)
+    _double_border(c, lx1, img_y, lw, img_h, col=nav_accent, gap=6, radius=10)
+
+    # Image inside frame (with padding)
+    pad = 10
+    _img_or_frame(c, nav_path,
+                  lx1 + pad, img_y + pad, lw - pad*2, img_h - pad*2 - 30,
+                  nav, nav=nav, frame_col=nav_accent)
+
+    # Navigator name label inside bottom of frame
+    _t(c, lx1 + lw/2, img_y + 12, nav, FNB, 14, nav_accent, "center")
+
+    # ── RIGHT COLUMN: intro + message ──
+    rx  = lx2 + 14
+    rw  = CX2 - rx
+    ry1 = CY1
+    ry2 = content_top
+
+    # Intro text (one line, auto-sized)
+    intro_fs = _afs(nav_msg["intro"], FN, 11, 8, rw)
+    _t(c, rx, ry2 - 18, nav_msg["intro"], FN, intro_fs, GLD)
 
     # Message box
-    msg_y = H - 335
-    msg_x = 50
-    msg_w = W - 100
-    msg_h = 300
+    msg_box_top  = ry2 - 38
+    msg_box_h    = msg_box_top - ry1
+    _double_border(c, rx, ry1, rw, msg_box_h, col=nav_accent, bg=PRP3, gap=6)
 
-    c.setFillColor(nav_bg)
-    c.setStrokeColor(nav_accent)
-    c.setLineWidth(1)
-    c.roundRect(msg_x, msg_y - msg_h, msg_w, msg_h, 10, fill=1, stroke=1)
-
-    # Quote marks
-    c.setFont(FONT_BOLD_NAME, 60)
+    # Large decorative opening quote
+    c.setFont(FNB, 42)
     c.setFillColor(nav_accent)
-    c.setFillAlpha(0.3)
-    c.drawString(msg_x + 10, msg_y - 30, "「")
-    c.drawRightString(msg_x + msg_w - 10, msg_y - msg_h + 10, "」")
+    c.setFillAlpha(0.22)
+    c.drawString(rx + 8, ry1 + msg_box_h - 30, "「")
     c.setFillAlpha(1.0)
 
-    # Message text
-    msg   = nav_data["message"]
-    chars = int((msg_w - 60) / 11)
-    lines = []
-    tmp   = msg
-    for para in tmp.split("。"):
-        if not para:
-            continue
-        para += "。"
-        while len(para) > chars:
-            lines.append(para[:chars])
-            para = para[chars:]
-        lines.append(para)
-        lines.append("")
-
-    dy = msg_y - 48
-    for line in lines:
-        if dy < msg_y - msg_h + 25:
-            break
-        _text(c, msg_x + 25, dy, line, FONT_NAME, 11, C_WHITE)
-        dy -= 20
-
-    _divider(c, 45)
-    _text(c, W/2, 28, "Page 3", FONT_NAME, 8, C_DIM, "center")
+    # Message text (carefully wrapped)
+    _draw_wrapped(
+        c, nav_msg["message"],
+        rx + 16, ry1 + msg_box_h - 48,
+        FN, 11, WHT, rw - 28, 20,
+        bottom=ry1 + 14,
+    )
 
 
-def _page_lucky(c: canvas.Canvas, data: dict):
-    _bg(c)
-    _scatter_stars(c, 30, seed=77)
-    _gold_border(c)
+# ════════════════════════════════════════════════════════════════════════════
+# PAGE 4 ── 今月の開運情報
+# ════════════════════════════════════════════════════════════════════════════
 
-    type_data = data["type"]
+def _page_lucky(c, data):
+    _page_base(c, seed=77)
+    _page_header(c, "星詠みChronicle", "◆  今 月 の 開 運 情 報  ◆",
+                 data["name"] + " 様")
+    _page_footer(c, 5, 6)
 
-    _star(c, W/2 - 110, H - 65, 8, 5, C_GOLD)
-    _star(c, W/2 + 110, H - 65, 8, 5, C_GOLD)
-    _text(c, W/2, H - 75, "◆ 今 月 の 開 運 情 報 ◆", FONT_BOLD_NAME, 20, C_GOLD2, "center")
-    _text(c, W/2, H - 95, "あなたに幸運をもたらす星からの贈り物", FONT_NAME, 10, C_SILVER, "center")
-    _divider(c, H - 108)
+    td = data["type"]
 
-    # Lucky Items
-    sec_y = H - 135
-    _section_box(c, 35, sec_y - 110, W - 70, 120, "✦ ラッキーアイテム")
-    items = type_data["lucky_items"]
+    _t(c, W/2, CY2 - 14, "あなたに幸運をもたらす星からの贈り物", FN, 10, SLV, "center")
+    _diamond_divider(c, CY2 - 28)
+
+    top_y = CY2 - 36
+    avail = top_y - CY1
+    gap   = 12
+
+    item_h  = int(avail * 0.25)
+    color_h = int(avail * 0.22)
+    adv_h   = avail - item_h - color_h - gap * 2
+
+    # ── Lucky Items ──
+    iy = top_y - item_h
+    _section_box(c, CX1, iy, CW, item_h, "✦  ラッキーアイテム")
+    items   = td["lucky_items"]
+    col_cnt = 2
+    col_w   = CW / col_cnt
     for j, item in enumerate(items):
-        ix = 65 + (j % 2) * (W/2 - 50)
-        iy = sec_y - 48 - (j // 2) * 30
-        _star(c, ix - 15, iy + 4, 5, 5, C_GOLD2)
-        _text(c, ix, iy, item, FONT_NAME, 11, C_WHITE)
+        ix  = CX1 + 16 + (j % col_cnt) * col_w
+        iy2 = iy + item_h - 38 - (j // col_cnt) * 28
+        if iy2 > iy + 8:
+            _star(c, ix + 5, iy2 + 5, 5, 5, GLD2)
+            _t(c, ix + 16, iy2, item, FN, 11, WHT)
 
-    # Lucky Colors
-    col_y = sec_y - 130
-    _section_box(c, 35, col_y - 110, W - 70, 120, "◈ ラッキーカラー")
-    colors = type_data["lucky_colors"]
-    swatch_w = (W - 120) / len(colors)
+    # ── Lucky Colors ──
+    cy_top = iy - gap
+    cy = cy_top - color_h
+    _section_box(c, CX1, cy, CW, color_h, "◈  ラッキーカラー")
+
+    colors = td["lucky_colors"]
+    n_col  = len(colors)
+    swatch_spacing = (CW - 20) / n_col
+    swatch_w = swatch_spacing - 10
+    swatch_h = color_h - 42
+
     for j, (cname, chex) in enumerate(colors):
-        sw_x = 50 + j * swatch_w
-        sw_y = col_y - 95
+        sx = CX1 + 10 + j * swatch_spacing
+        sy = cy + 14
         c.setFillColor(HexColor(chex))
-        c.setStrokeColor(C_GOLD)
-        c.setLineWidth(0.5)
-        c.roundRect(sw_x, sw_y, swatch_w - 15, 35, 5, fill=1, stroke=1)
-        _text(c, sw_x + (swatch_w-15)/2, sw_y - 16, cname, FONT_NAME, 10, C_WHITE, "center")
+        c.setStrokeColor(GLD)
+        c.setLineWidth(0.7)
+        c.roundRect(sx, sy, swatch_w, swatch_h, 5, fill=1, stroke=1)
+        # Colour name below swatch
+        cname_fs = _afs(cname, FN, 10, 7, swatch_w)
+        _t(c, sx + swatch_w/2, sy - 16, cname, FN, cname_fs, WHT, "center")
+        # Hex code tiny
+        _t(c, sx + swatch_w/2, sy + swatch_h + 4, chex, FN, 7, DIM, "center")
 
-    # Advice
-    adv_y = col_y - 140
-    _section_box(c, 35, adv_y - 180, W - 70, 185, "★ 今月のアドバイス")
+    # ── Monthly Advice ──
+    ay_top = cy - gap
+    ay = ay_top - adv_h
+    _section_box(c, CX1, ay, CW, adv_h, "★  今月のアドバイス")
 
-    # Generate advice from type traits
-    traits = type_data["traits"]
-    advice_lines = [
-        f"◉ {data['month_str']}、{data['type']['name']}であるあなたへ",
+    advice = [
+        f"◉  {data['month_str']}、{td['name']}のあなたへ",
         "",
-        f"あなたの本質は「{type_data['keyword']}」にあります。",
-        type_data["desc"][:40] + "……",
-        "",
-    ] + [f"◆ {t}" for t in traits]
+    ]
+    # Description (first 50 chars)
+    desc_short = td["desc"][:52] + "……"
+    advice += [desc_short, ""]
+    advice += [f"◆  {t}" for t in td["traits"]]
 
-    dy = adv_y - 40
-    for line in advice_lines:
+    ay_cursor = ay + adv_h - 35
+    for line in advice:
         if not line:
-            dy -= 6
+            ay_cursor -= 5
             continue
-        color = C_GOLD if line.startswith("◉") else C_WHITE if line.startswith("◆") else C_SILVER
-        size  = 12 if line.startswith("◉") else 10
-        _text(c, 55, dy, line, FONT_NAME, size, color)
-        dy -= 18
+        if ay_cursor < ay + 8:
+            break
+        col_  = GLD  if line.startswith("◉") else \
+                GLD2 if line.startswith("◆") else SLV
+        fs_   = 11 if line.startswith("◉") else 10
+        # Wrap long lines
+        wrapped = _wrap(line, FN, fs_, CW - 28)
+        for wline in wrapped:
+            if ay_cursor < ay + 8:
+                break
+            _t(c, CX1 + 18, ay_cursor, wline, FN, fs_, col_)
+            ay_cursor -= 17
 
-    _divider(c, 45)
-    _text(c, W/2, 28, "Page 4", FONT_NAME, 8, C_DIM, "center")
 
+# ════════════════════════════════════════════════════════════════════════════
+# PAGE 5 ── BACK COVER
+# ════════════════════════════════════════════════════════════════════════════
 
-def _page_back(c: canvas.Canvas, data: dict):
-    _bg(c)
-    _scatter_stars(c, 80, seed=1234)
-    _gold_border(c)
+def _page_back(c, data):
+    _page_base(c, seed=9999)
 
-    # Large decorative moon
-    _moon(c, W/2, H - 150, 80, C_GOLD)
+    # Large moon (center-top area)
+    _moon(c, W/2 + 50, H - 150, 78, GLD)
+    # Decorative stars constellation
+    pts = [
+        (W/2 - 80, H - 118),
+        (W/2 - 50, H - 210),
+        (W/2 + 50, H - 150),
+        (W/2 + 105, H - 200),
+        (W/2 + 20,  H - 240),
+    ]
+    for px, py in pts:
+        _star(c, px, py, 10, 5, GLD)
+    # Constellation lines
+    c.setStrokeColor(GLD)
+    c.setLineWidth(0.4)
+    c.setStrokeAlpha(0.3)
+    for i in range(len(pts) - 1):
+        c.line(pts[i][0], pts[i][1], pts[i+1][0], pts[i+1][1])
+    c.setStrokeAlpha(1.0)
 
-    # Decorative stars
-    for angle_deg, r_dist, size in [(30, 140, 15), (150, 140, 12), (90, 160, 10),
-                                     (210, 120, 8), (330, 120, 8), (0, 180, 6)]:
-        angle = math.radians(angle_deg)
-        sx = W/2 + r_dist * math.cos(angle)
-        sy = (H - 150) + r_dist * math.sin(angle)
-        _star(c, sx, sy, size, 5, C_GOLD)
+    # Upper divider
+    _diamond_divider(c, H/2 + 58)
 
     # Logo
-    _text(c, W/2, H/2 + 40, "星 詠 み Chronicle", FONT_BOLD_NAME, 30, C_GOLD2, "center")
-    _text(c, W/2, H/2 + 10, "Hoshiyomi Chronicle", FONT_NAME, 14, C_SILVER, "center")
-    _divider(c, H/2 - 10, margin=80)
+    logo_text = "星 詠 み  Chronicle"
+    logo_fs = _afs(logo_text, FNB, 36, 20, CW - 60)
+    _t(c, W/2, H/2 + 26, logo_text, FNB, logo_fs, GLD2, "center")
+    _t(c, W/2, H/2 + 2, "Hoshiyomi Chronicle", FN, 14, SLV, "center")
 
-    _text(c, W/2, H/2 - 38, "〜 星の導きに従い、あなたの道を歩んでください 〜", FONT_NAME, 10, C_SILVER, "center")
+    _diamond_divider(c, H/2 - 16)
+
+    _t(c, W/2, H/2 - 38,
+       "〜 星の導きに従い、あなただけの道を歩んでください 〜",
+       FN, 10, SLV, "center")
 
     # URL box
-    url_y = H/2 - 80
-    c.setFillColor(C_ACCENT2)
-    c.setStrokeColor(C_GOLD)
-    c.setLineWidth(0.8)
-    c.roundRect(W/2 - 150, url_y - 20, 300, 35, 8, fill=1, stroke=1)
-    _text(c, W/2, url_y - 6, "https://hoshiyomi-chronicle.booth.pm", FONT_NAME, 11, C_GOLD2, "center")
+    url = "https://hoshiyomi-chronicle.booth.pm"
+    url_box_w = 340
+    url_box_x = W/2 - url_box_w/2
+    _double_border(c, url_box_x, H/2 - 100, url_box_w, 38, bg=PRP2, gap=4)
+    _t(c, W/2, H/2 - 78, url, FN, 11, GLD3, "center")
 
-    _text(c, W/2, url_y - 45, "© 星詠みChronicle  All Rights Reserved", FONT_NAME, 9, C_DIM, "center")
+    # Copyright
+    _t(c, W/2, H/2 - 118,
+       "©  星詠みChronicle  All Rights Reserved",
+       FN, 9, DIM, "center")
+
+    # Type name reminder
+    _t(c, W/2, H/2 - 140,
+       f"◈  {data['name']}様  ／  {data['type']['name']}  ◈",
+       FN, 11, GLD, "center")
 
     # Bottom corner stars
-    for sx, sy in [(45, 45), (W - 45, 45), (45, H - 45), (W - 45, H - 45)]:
-        _star(c, sx, sy, 10, 5, C_GOLD)
+    for sx, sy in [(MG + 20, MG + 20), (W - MG - 20, MG + 20),
+                   (MG + 20, H - MG - 20), (W - MG - 20, H - MG - 20)]:
+        _star(c, sx, sy, 11, 5, GLD)
 
 
-# ── Main entrypoint ──────────────────────────────────────────────────────
+# ════════════════════════════════════════════════════════════════════════════
+# Main entry point
+# ════════════════════════════════════════════════════════════════════════════
 
-def generate_pdf(data: dict, output_path: str = None) -> bytes:
-    _register_fonts()
+def generate_pdf(data: dict, output_path: str = None) -> bytes | None:
+    _setup_fonts()
 
     buf = BytesIO()
-    target = output_path or buf
+    target = str(output_path) if output_path else buf
 
-    c = canvas.Canvas(str(target) if output_path else buf, pagesize=A4)
-    c.setTitle(f"星詠みChronicle 個人鑑定書 - {data['name']}様")
-    c.setAuthor("星詠みChronicle")
-    c.setSubject(f"{data['type']['name']} 個人鑑定")
+    cv = _Canvas.Canvas(target, pagesize=A4)
+    cv.setTitle(f"星詠みChronicle 個人鑑定書 — {data['name']}様")
+    cv.setAuthor("星詠みChronicle")
+    cv.setSubject(f"{data['type']['name']} 個人鑑定 {data['month_str']}")
 
-    # Cover
-    _page_cover(c, data)
-    c.showPage()
+    _page_cover(cv, data);     cv.showPage()   # 表紙
+    _page_four_axis(cv, data); cv.showPage()   # p1 四軸分析
+    _page_fortune(cv, data);   cv.showPage()   # p2 運勢スコア
+    _page_navigator(cv, data); cv.showPage()   # p3 ナビゲーター
+    _page_lucky(cv, data);     cv.showPage()   # p4 開運情報
+    _page_back(cv, data);      cv.showPage()   # 裏表紙
 
-    # Page 1: 4軸分析
-    _page_four_axis(c, data)
-    c.showPage()
-
-    # Page 2: 運勢スコア
-    _page_fortune(c, data)
-    c.showPage()
-
-    # Page 3: ナビゲーターメッセージ
-    _page_navigator(c, data)
-    c.showPage()
-
-    # Page 4: ラッキー情報
-    _page_lucky(c, data)
-    c.showPage()
-
-    # Back cover
-    _page_back(c, data)
-    c.showPage()
-
-    c.save()
-
+    cv.save()
     if output_path:
         return None
     return buf.getvalue()
