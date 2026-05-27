@@ -255,10 +255,11 @@ def _page_header(c, left="", center="", right=""):
 def _page_footer(c, page_num=1, total=6):
     """Standard footer band."""
     _hline(c, FTR_LINE, lw=0.8)
-    _t(c, W/2, FTR_LINE - 18, f"― {page_num} / {total} ―", FN, 9, DIM, "center")
-    _t(c, MG + BDG + 12, FTR_LINE - 18, "星詠みChronicle", FN, 8, DIM)
-    _star(c, MG + BDG + 6, FTR_LINE - 10, 4, 5, GLD)
-    _star(c, W - MG - BDG - 6, FTR_LINE - 10, 4, 5, GLD)
+    # Text at FTR_LINE-14 keeps descenders (3pt) above inner border bottom (y=29)
+    _t(c, W/2, FTR_LINE - 14, f"― {page_num} / {total} ―", FN, 9, DIM, "center")
+    _t(c, MG + BDG + 12, FTR_LINE - 14, "星詠みChronicle", FN, 8, DIM)
+    _star(c, MG + BDG + 6, FTR_LINE - 8, 4, 5, GLD)
+    _star(c, W - MG - BDG - 6, FTR_LINE - 8, 4, 5, GLD)
 
 
 # ─── Image drawing with fallback frame ────────────────────────────────────
@@ -600,21 +601,21 @@ def _page_four_axis(c, data):
 
         _section_box(c, CX1, sy, CW, sh, title, accent)
 
-        # Main label (auto-sized)
+        # Main label (auto-sized) — shifted down 10pt for clearance below badge
         main_fs = _afs(main, FNB, 19, 10, CW - 30)
-        _t(c, CX1 + 18, sy + sh - 36, main, FNB, main_fs, WHT)
+        _t(c, CX1 + 18, sy + sh - 46, main, FNB, main_fs, WHT)
 
         # Sub label
         sub_fs = _afs(sub, FN, 10, 8, CW - 30)
-        _t(c, CX1 + 18, sy + sh - 55, sub, FN, sub_fs, GLD)
+        _t(c, CX1 + 18, sy + sh - 65, sub, FN, sub_fs, GLD)
 
         # Thin accent line
         c.setStrokeColor(accent)
         c.setLineWidth(0.35)
-        c.line(CX1 + 14, sy + sh - 65, CX1 + CW - 14, sy + sh - 65)
+        c.line(CX1 + 14, sy + sh - 77, CX1 + CW - 14, sy + sh - 77)
 
         # Description (wrapped, truncated to box)
-        _draw_wrapped(c, desc, CX1 + 18, sy + sh - 82,
+        _draw_wrapped(c, desc, CX1 + 18, sy + sh - 94,
                       FN, 10.5, SLV, CW - 32, 16, sy + 8)
 
 
@@ -740,8 +741,8 @@ def _page_navigator(c, data):
                   lx1 + pad, img_y + pad, lw - pad*2, img_h - pad*2 - 30,
                   nav, nav=nav, frame_col=nav_accent)
 
-    # Navigator name label inside bottom of frame
-    _t(c, lx1 + lw/2, img_y + 12, nav, FNB, 14, nav_accent, "center")
+    # Navigator name label inside bottom of frame (clear of inner border at img_y+6)
+    _t(c, lx1 + lw/2, img_y + 20, nav, FNB, 14, nav_accent, "center")
 
     # ── RIGHT COLUMN: intro + message ──
     rx  = lx2 + 14
@@ -793,19 +794,23 @@ def _page_lucky(c, data):
     avail = top_y - CY1
     gap   = 12
 
-    item_h  = int(avail * 0.25)
-    color_h = int(avail * 0.22)
+    items   = td["lucky_items"]
+    colors  = td["lucky_colors"]
+
+    # Content-adaptive heights: items and colors are compact; advice gets the rest
+    n_item_rows = math.ceil(len(items) / 2)
+    item_h  = max(80, 38 + n_item_rows * 30 + 16)
+    color_h = 100
     adv_h   = avail - item_h - color_h - gap * 2
 
     # ── Lucky Items ──
     iy = top_y - item_h
     _section_box(c, CX1, iy, CW, item_h, "◆  ラッキーアイテム")
-    items   = td["lucky_items"]
     col_cnt = 2
     col_w   = CW / col_cnt
     for j, item in enumerate(items):
         ix  = CX1 + 16 + (j % col_cnt) * col_w
-        iy2 = iy + item_h - 38 - (j // col_cnt) * 28
+        iy2 = iy + item_h - 38 - (j // col_cnt) * 30
         if iy2 > iy + 8:
             _star(c, ix + 5, iy2 + 5, 5, 5, GLD2)
             _t(c, ix + 16, iy2, item, FN, 11, WHT)
@@ -815,24 +820,22 @@ def _page_lucky(c, data):
     cy = cy_top - color_h
     _section_box(c, CX1, cy, CW, color_h, "◆  ラッキーカラー")
 
-    colors = td["lucky_colors"]
     n_col  = len(colors)
     swatch_spacing = (CW - 20) / n_col
     swatch_w = swatch_spacing - 10
-    swatch_h = color_h - 42
+    # Swatch height: box minus badge (top 22pt) and name label (bottom 24pt)
+    swatch_h = max(40, color_h - 46)
+    sy_swatch = cy + 24   # swatch bottom y — keeps name text inside box
 
     for j, (cname, chex) in enumerate(colors):
         sx = CX1 + 10 + j * swatch_spacing
-        sy = cy + 14
         c.setFillColor(HexColor(chex))
         c.setStrokeColor(GLD)
         c.setLineWidth(0.7)
-        c.roundRect(sx, sy, swatch_w, swatch_h, 5, fill=1, stroke=1)
-        # Colour name below swatch
+        c.roundRect(sx, sy_swatch, swatch_w, swatch_h, 5, fill=1, stroke=1)
+        # Colour name inside box bottom (no more text-outside-border bug)
         cname_fs = _afs(cname, FN, 10, 7, swatch_w)
-        _t(c, sx + swatch_w/2, sy - 16, cname, FN, cname_fs, WHT, "center")
-        # Hex code tiny
-        _t(c, sx + swatch_w/2, sy + swatch_h + 4, chex, FN, 7, DIM, "center")
+        _t(c, sx + swatch_w/2, cy + 8, cname, FN, cname_fs, WHT, "center")
 
     # ── Monthly Advice ──
     ay_top = cy - gap
@@ -842,11 +845,15 @@ def _page_lucky(c, data):
     advice = [
         f"●  {data['month_str']}、{td['name']}のあなたへ",
         "",
+        td["desc"],  # full description (no truncation)
+        "",
     ]
-    # Description (first 50 chars)
-    desc_short = td["desc"][:52] + "……"
-    advice += [desc_short, ""]
     advice += [f"◆  {t}" for t in td["traits"]]
+    advice += [
+        "",
+        f"★  星座：{data['zodiac']['name']}　干支：{data['chinese']['name']}　数秘：{data['life_path']['number']}",
+        f"★  今月の星の流れを活かして、あなたらしい一歩を踏み出しましょう。",
+    ]
 
     ay_cursor = ay + adv_h - 35
     for line in advice:
