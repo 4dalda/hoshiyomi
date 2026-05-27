@@ -29,8 +29,10 @@ def _type_img_path(tid): return os.path.join(IMG_DIR, TYPE_IMGS.get(tid, ""))
 def _nav_img_path(nav):  return os.path.join(IMG_DIR, NAV_IMGS.get(nav, ""))
 
 # ─── Font registration ─────────────────────────────────────────────────────
-FN  = "HoshiR"
-FNB = "HoshiB"
+FN   = "HoshiR"    # IPA Gothic  — UI labels, headers, scores
+FNB  = "HoshiB"    # IPA PGothic — bold UI labels, badges
+FNS  = "HoshiS"    # IPAex Mincho (明朝体) — narrative / body text
+FNSL = "HoshiSL"   # FreeSerif — Latin decorative titles (Chronicle etc.)
 _FONT_DONE = False
 
 def _setup_fonts():
@@ -51,6 +53,26 @@ def _setup_fonts():
         if os.path.exists(p):
             pdfmetrics.registerFont(TTFont(FNB, p))
             break
+    # IPAex Mincho — Japanese serif, traditional fortune-telling feel
+    for p in [
+        "/usr/share/fonts/opentype/ipaexfont-mincho/ipaexm.ttf",
+        "/usr/share/fonts/truetype/fonts-japanese-mincho.ttf",
+    ]:
+        if os.path.exists(p):
+            pdfmetrics.registerFont(TTFont(FNS, p))
+            break
+    else:
+        pdfmetrics.registerFont(TTFont(FNS, "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf"))
+    # FreeSerif — Latin glyphs for decorative ASCII title text
+    for p in [
+        "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+    ]:
+        if os.path.exists(p):
+            pdfmetrics.registerFont(TTFont(FNSL, p))
+            break
+    else:
+        pdfmetrics.registerFont(TTFont(FNSL, "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf"))
     _FONT_DONE = True
 
 # ─── Color palette ─────────────────────────────────────────────────────────
@@ -428,11 +450,11 @@ def _page_cover(c, data):
     _star(c, 52, H - 118, 12, 5, SLV)
     _star(c, 105, H - 48, 7, 5, GLD2)
 
-    # ── Site title ──
+    # ── Site title (serif fonts for elegant fortune-telling look) ──
     title_text = "星 詠 み  Chronicle"
-    title_fs = _afs(title_text, FNB, 26, 14, CW - 60)
-    _t(c, W/2, H - 72, title_text, FNB, title_fs, GLD2, "center")
-    _t(c, W/2, H - 92, "〜  Personal Fortune Reading  〜", FN, 9, SLV, "center")
+    title_fs = _afs(title_text, FNS, 26, 14, CW - 60)
+    _t(c, W/2, H - 72, title_text, FNS, title_fs, GLD2, "center")
+    _t(c, W/2, H - 92, "〜  Personal Fortune Reading  〜", FNSL, 9, SLV, "center")
     _diamond_divider(c, H - 105)
 
     # ── Person name ──
@@ -564,7 +586,7 @@ def _page_four_axis(c, data):
     _page_footer(c, 2, 6)
 
     # Sub-title
-    _t(c, W/2, CY2 - 14, "あなたを形作る 4 つの力の流れ", FN, 10, SLV, "center")
+    _t(c, W/2, CY2 - 14, "あなたを形作る 4 つの力の流れ", FNS, 10, SLV, "center")
     _diamond_divider(c, CY2 - 28)
 
     sections = [
@@ -616,7 +638,7 @@ def _page_four_axis(c, data):
 
         # Description (wrapped, truncated to box)
         _draw_wrapped(c, desc, CX1 + 18, sy + sh - 94,
-                      FN, 10.5, SLV, CW - 32, 16, sy + 8)
+                      FNS, 10.5, SLV, CW - 32, 16, sy + 8)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -692,7 +714,7 @@ def _page_fortune(c, data):
 
         # Message text (wrapped, constrained to box)
         _draw_wrapped(c, msg, CX1 + 16, by + bh - 70,
-                      FN, 10, WHT, CW - 28, 15, by + 7)
+                      FNS, 10, WHT, CW - 28, 15, by + 7)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -703,6 +725,7 @@ def _page_navigator(c, data):
     _page_base(c, seed=55)
     nav     = data["navigator"]
     nav_msg = get_navigator_message(nav, data["type_id"], data["name"])
+    td      = data["type"]
 
     nav_accent = {
         "叢雲":  HexColor("#9999ff"),
@@ -715,64 +738,105 @@ def _page_navigator(c, data):
                  f"◆  {nav}  よ り  ◆", data["name"] + " 様")
     _page_footer(c, 4, 6)
 
-    # Section header
-    _t(c, W/2, CY2 - 15, nav_msg["header"], FNB, 13, GLD2, "center")
+    # Section header (serif font for mystical feel)
+    _t(c, W/2, CY2 - 15, nav_msg["header"], FNS, 13, GLD2, "center")
     _diamond_divider(c, CY2 - 30)
 
     content_top = CY2 - 38
+    content_h   = content_top - CY1          # ≈ 677 pt
 
-    # ── LEFT COLUMN: Navigator cat image ──
-    lw  = 188                        # left column width
+    # ── Split: upper 62% for image+message, lower 38% for lucky preview ──
+    upper_h  = int(content_h * 0.62)         # ≈ 420 pt
+    lucky_gap = 14
+    lower_h  = content_h - upper_h - lucky_gap   # ≈ 243 pt
+    upper_y1 = content_top - upper_h         # bottom of upper area
+    lower_y1 = CY1                           # = 60
+
+    # ── LEFT COLUMN: Navigator image (full upper height) ──
+    lw  = 188
     lx1 = CX1
     lx2 = CX1 + lw
 
-    img_h = min(content_top - CY1 - 5, lw + 50)   # square-ish
-    img_y = content_top - img_h
-
     nav_path = _nav_img_path(nav)
-    # Frame background
     c.setFillColor(PRP3)
-    c.roundRect(lx1, img_y, lw, img_h, 10, fill=1, stroke=0)
-    _double_border(c, lx1, img_y, lw, img_h, col=nav_accent, gap=6, radius=10)
+    c.roundRect(lx1, upper_y1, lw, upper_h, 10, fill=1, stroke=0)
+    _double_border(c, lx1, upper_y1, lw, upper_h, col=nav_accent, gap=6, radius=10)
 
-    # Image inside frame (with padding)
     pad = 10
     _img_or_frame(c, nav_path,
-                  lx1 + pad, img_y + pad, lw - pad*2, img_h - pad*2 - 30,
+                  lx1 + pad, upper_y1 + pad + 28,
+                  lw - pad*2, upper_h - pad*2 - 38,
                   nav, nav=nav, frame_col=nav_accent)
+    _t(c, lx1 + lw/2, upper_y1 + 20, nav, FNS, 14, nav_accent, "center")
 
-    # Navigator name label inside bottom of frame (clear of inner border at img_y+6)
-    _t(c, lx1 + lw/2, img_y + 20, nav, FNB, 14, nav_accent, "center")
-
-    # ── RIGHT COLUMN: intro + message ──
+    # ── RIGHT COLUMN: intro + message (serif) ──
     rx  = lx2 + 14
     rw  = CX2 - rx
-    ry1 = CY1
-    ry2 = content_top
 
-    # Intro text (one line, auto-sized)
-    intro_fs = _afs(nav_msg["intro"], FN, 11, 8, rw)
-    _t(c, rx, ry2 - 18, nav_msg["intro"], FN, intro_fs, GLD)
+    intro_fs = _afs(nav_msg["intro"], FNS, 11, 8, rw)
+    _t(c, rx, content_top - 18, nav_msg["intro"], FNS, intro_fs, GLD)
 
-    # Message box
-    msg_box_top  = ry2 - 38
-    msg_box_h    = msg_box_top - ry1
-    _double_border(c, rx, ry1, rw, msg_box_h, col=nav_accent, bg=PRP3, gap=6)
+    msg_box_h = (content_top - 38) - upper_y1
+    _double_border(c, rx, upper_y1, rw, msg_box_h, col=nav_accent, bg=PRP3, gap=6)
 
-    # Large decorative opening quote
-    c.setFont(FNB, 42)
+    # Decorative opening quote
+    c.setFont(FNS, 42)
     c.setFillColor(nav_accent)
     c.setFillAlpha(0.22)
-    c.drawString(rx + 8, ry1 + msg_box_h - 30, "「")
+    c.drawString(rx + 8, upper_y1 + msg_box_h - 32, "「")
     c.setFillAlpha(1.0)
 
-    # Message text (carefully wrapped)
     _draw_wrapped(
         c, nav_msg["message"],
-        rx + 16, ry1 + msg_box_h - 48,
-        FN, 11, WHT, rw - 28, 20,
-        bottom=ry1 + 14,
+        rx + 18, upper_y1 + msg_box_h - 50,
+        FNS, 11, WHT, rw - 30, 21,
+        bottom=upper_y1 + 14,
     )
+
+    # ── LOWER AREA: lucky preview from next page ──
+    _diamond_divider(c, upper_y1 - lucky_gap // 2)
+
+    lucky_box_h = lower_h - 4
+    _section_box(c, CX1, lower_y1, CW, lucky_box_h, "◆  今 月 の ラ ッ キ ー 情 報", GLD)
+
+    # Two-column layout: items left, color swatches right
+    items  = td["lucky_items"]
+    colors = td["lucky_colors"]
+
+    mid_x    = CX1 + CW * 0.42
+    row_start = lower_y1 + lucky_box_h - 40   # first row y (below badge)
+    row_step  = 28
+
+    # Items column (left)
+    _t(c, CX1 + 18, row_start + 14, "◆ ラッキーアイテム", FNS, 9, GLD)
+    for j, item in enumerate(items):
+        iy = row_start - j * row_step
+        if iy < lower_y1 + 10:
+            break
+        _star(c, CX1 + 22, iy + 5, 4, 5, GLD2)
+        _t(c, CX1 + 34, iy, item, FNS, 11, WHT)
+
+    # Vertical separator
+    c.setStrokeColor(GLD)
+    c.setLineWidth(0.4)
+    c.setStrokeAlpha(0.4)
+    c.line(mid_x, lower_y1 + 10, mid_x, lower_y1 + lucky_box_h - 22)
+    c.setStrokeAlpha(1.0)
+
+    # Colors column (right) — horizontal swatches
+    cx_start = mid_x + 14
+    cw_avail = CX2 - cx_start - 8
+    _t(c, cx_start, row_start + 14, "◆ ラッキーカラー", FNS, 9, GLD)
+    for j, (cname, chex) in enumerate(colors):
+        sy = row_start - j * row_step
+        if sy < lower_y1 + 10:
+            break
+        sw = 22
+        c.setFillColor(HexColor(chex))
+        c.setStrokeColor(GLD)
+        c.setLineWidth(0.5)
+        c.roundRect(cx_start, sy, sw, 20, 3, fill=1, stroke=1)
+        _t(c, cx_start + sw + 8, sy + 3, cname, FNS, 11, WHT)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -866,11 +930,11 @@ def _page_lucky(c, data):
                 GLD2 if line.startswith("◆") else SLV
         fs_   = 11 if line.startswith("●") else 10
         # Wrap long lines
-        wrapped = _wrap(line, FN, fs_, CW - 28)
+        wrapped = _wrap(line, FNS, fs_, CW - 28)
         for wline in wrapped:
             if ay_cursor < ay + 8:
                 break
-            _t(c, CX1 + 18, ay_cursor, wline, FN, fs_, col_)
+            _t(c, CX1 + 18, ay_cursor, wline, FNS, fs_, col_)
             ay_cursor -= 17
 
 
@@ -904,17 +968,17 @@ def _page_back(c, data):
     # Upper divider
     _diamond_divider(c, H/2 + 58)
 
-    # Logo
+    # Logo (serif for elegant look)
     logo_text = "星 詠 み  Chronicle"
-    logo_fs = _afs(logo_text, FNB, 36, 20, CW - 60)
-    _t(c, W/2, H/2 + 26, logo_text, FNB, logo_fs, GLD2, "center")
-    _t(c, W/2, H/2 + 2, "Hoshiyomi Chronicle", FN, 14, SLV, "center")
+    logo_fs = _afs(logo_text, FNS, 36, 20, CW - 60)
+    _t(c, W/2, H/2 + 26, logo_text, FNS, logo_fs, GLD2, "center")
+    _t(c, W/2, H/2 + 2, "Hoshiyomi Chronicle", FNSL, 14, SLV, "center")
 
     _diamond_divider(c, H/2 - 16)
 
     _t(c, W/2, H/2 - 38,
        "〜 星の導きに従い、あなただけの道を歩んでください 〜",
-       FN, 10, SLV, "center")
+       FNS, 10, SLV, "center")
 
     # URL box
     url = "https://hoshiyomi-chronicle.booth.pm"
