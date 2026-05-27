@@ -22,7 +22,7 @@ TYPE_IMGS = {
 NAV_IMGS = {
     "叢雲":   "叢雲SD.png",
     "ノヴァ":  "ノヴァSD.png",
-    "フレイヤ": "フレイヤSD.png",
+    "フレイヤ": "フレイアSD.png",
     "グレイス": "グレイスSD.png",
 }
 def _type_img_path(tid): return os.path.join(IMG_DIR, TYPE_IMGS.get(tid, ""))
