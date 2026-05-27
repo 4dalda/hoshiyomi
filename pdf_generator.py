@@ -454,7 +454,7 @@ def _page_cover(c, data):
     title_text = "星 詠 み  Chronicle"
     title_fs = _afs(title_text, FNS, 26, 14, CW - 60)
     _t(c, W/2, H - 72, title_text, FNS, title_fs, GLD2, "center")
-    _t(c, W/2, H - 92, "〜  Personal Fortune Reading  〜", FNSL, 9, SLV, "center")
+    _t(c, W/2, H - 92, "〜  Personal Fortune Reading  〜", FN, 9, SLV, "center")
     _diamond_divider(c, H - 105)
 
     # ── Person name ──
@@ -539,7 +539,7 @@ def _page_cover(c, data):
     nav_strip_h   = nav_strip_top - nav_strip_bot
     nav_r  = min(52, max(20, nav_strip_h // 2 - 22))
     nav_cx = W / 2
-    nav_cy = int((nav_strip_top + nav_strip_bot) / 2) + 14
+    nav_cy = int((nav_strip_top + nav_strip_bot) / 2) + 4
 
     # Thin separator above navigator area
     _hline(c, nav_strip_top, lw=0.5)
@@ -623,21 +623,21 @@ def _page_four_axis(c, data):
 
         _section_box(c, CX1, sy, CW, sh, title, accent)
 
-        # Main label (auto-sized) — shifted down 10pt for clearance below badge
+        # Main label (auto-sized)
         main_fs = _afs(main, FNB, 19, 10, CW - 30)
-        _t(c, CX1 + 18, sy + sh - 46, main, FNB, main_fs, WHT)
+        _t(c, CX1 + 18, sy + sh - 58, main, FNB, main_fs, WHT)
 
         # Sub label
         sub_fs = _afs(sub, FN, 10, 8, CW - 30)
-        _t(c, CX1 + 18, sy + sh - 65, sub, FN, sub_fs, GLD)
+        _t(c, CX1 + 18, sy + sh - 77, sub, FN, sub_fs, GLD)
 
         # Thin accent line
         c.setStrokeColor(accent)
         c.setLineWidth(0.35)
-        c.line(CX1 + 14, sy + sh - 77, CX1 + CW - 14, sy + sh - 77)
+        c.line(CX1 + 14, sy + sh - 89, CX1 + CW - 14, sy + sh - 89)
 
         # Description (wrapped, truncated to box)
-        _draw_wrapped(c, desc, CX1 + 18, sy + sh - 94,
+        _draw_wrapped(c, desc, CX1 + 18, sy + sh - 106,
                       FNS, 10.5, SLV, CW - 32, 16, sy + 8)
 
 
@@ -651,21 +651,9 @@ def _page_fortune(c, data):
     _page_header(c, "星詠みChronicle", "◆  今 月 の 運 勢  ◆", data["month_str"])
     _page_footer(c, 3, 6)
 
-    # Small type image — top right
-    si_size = 82
-    si_x = CX2 - si_size
-    si_y = CY2 - si_size
-    _img_or_frame(c, _type_img_path(tid), si_x, si_y, si_size, si_size,
-                  data["type"]["name"], type_id=tid)
-    # Thin ring around image
-    c.setStrokeColor(TC(tid))
-    c.setLineWidth(1.0)
-    c.roundRect(si_x, si_y, si_size, si_size, 6, fill=0, stroke=1)
-
-    # Sub-title (avoids overlapping image)
-    sub_x2 = si_x - 10
+    # Sub-title
     sub_text = f"◆  {data['name']}様の今月の星の流れ"
-    sub_fs = _afs(sub_text, FN, 11, 8, sub_x2 - CX1)
+    sub_fs = _afs(sub_text, FN, 11, 8, CW)
     _t(c, CX1, CY2 - 14, sub_text, FN, sub_fs, GLD)
     _diamond_divider(c, CY2 - 28)
 
@@ -849,7 +837,8 @@ def _page_lucky(c, data):
                  data["name"] + " 様")
     _page_footer(c, 5, 6)
 
-    td = data["type"]
+    tid = data["type_id"]
+    td  = data["type"]
 
     _t(c, W/2, CY2 - 14, "あなたに幸運をもたらす星からの贈り物", FN, 10, SLV, "center")
     _diamond_divider(c, CY2 - 28)
@@ -906,10 +895,31 @@ def _page_lucky(c, data):
     ay = ay_top - adv_h
     _section_box(c, CX1, ay, CW, adv_h, "★  今月のアドバイス")
 
+    # Character image on the right side of the advice box
+    img_r   = 70
+    img_cx  = CX2 - img_r - 14
+    img_cy  = ay + adv_h // 2
+    img_path = _type_img_path(tid)
+    drawn = _draw_circle_cover(c, img_path, img_cx, img_cy, img_r)
+    if drawn:
+        # Gold ring around the character circle
+        c.setStrokeColor(TC(tid))
+        c.setLineWidth(1.5)
+        c.circle(img_cx, img_cy, img_r + 2, fill=0, stroke=1)
+        c.setStrokeColor(GLD2)
+        c.setLineWidth(0.5)
+        c.circle(img_cx, img_cy, img_r + 9, fill=0, stroke=1)
+    else:
+        _img_or_frame(c, img_path, img_cx - img_r, ay + 20,
+                      img_r * 2, adv_h - 40, td["name"], type_id=tid)
+
+    # Text area is the left portion, leaving space for the image
+    text_max_w = img_cx - img_r - CX1 - 32
+
     advice = [
         f"●  {data['month_str']}、{td['name']}のあなたへ",
         "",
-        td["desc"],  # full description (no truncation)
+        td["desc"],
         "",
     ]
     advice += [f"◆  {t}" for t in td["traits"]]
@@ -929,8 +939,7 @@ def _page_lucky(c, data):
         col_  = GLD  if line.startswith("●") else \
                 GLD2 if line.startswith("◆") else SLV
         fs_   = 11 if line.startswith("●") else 10
-        # Wrap long lines
-        wrapped = _wrap(line, FNS, fs_, CW - 28)
+        wrapped = _wrap(line, FNS, fs_, text_max_w)
         for wline in wrapped:
             if ay_cursor < ay + 8:
                 break
