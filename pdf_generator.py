@@ -375,6 +375,41 @@ def _section_box(c, x, y, w, h, title="", accent=None):
         _t(c, x + 12 + tw/2, y + h - 14, title, FNB, 10, BG, "center")
 
 
+# ─── Circular clip + cover-fit image drawing ──────────────────────────────
+
+def _circle_clip_path(c, cx, cy, r):
+    """Return a bezier-approximated circle path for use with clipPath."""
+    k = 0.5522847498   # cubic bezier kappa
+    p = c.beginPath()
+    p.moveTo(cx + r, cy)
+    p.curveTo(cx + r,   cy + r*k, cx + r*k, cy + r,   cx,     cy + r)
+    p.curveTo(cx - r*k, cy + r,   cx - r,   cy + r*k, cx - r, cy)
+    p.curveTo(cx - r,   cy - r*k, cx - r*k, cy - r,   cx,     cy - r)
+    p.curveTo(cx + r*k, cy - r,   cx + r,   cy - r*k, cx + r, cy)
+    p.close()
+    return p
+
+
+def _draw_circle_cover(c, img_path, cx, cy, r):
+    """Draw image cover-fit inside a circular clip. Returns True on success."""
+    if not img_path or not os.path.exists(img_path):
+        return False
+    try:
+        from PIL import Image as PILImage
+        with PILImage.open(img_path) as pil:
+            iw, ih = pil.size
+        diam  = r * 2
+        scale = max(diam / iw, diam / ih)   # cover: larger side fills circle
+        dw, dh = iw * scale, ih * scale
+        c.saveState()
+        c.clipPath(_circle_clip_path(c, cx, cy, r), stroke=0, fill=0)
+        c.drawImage(img_path, cx - dw/2, cy - dh/2, dw, dh, mask='auto')
+        c.restoreState()
+        return True
+    except Exception:
+        return False
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # PAGE 0 ── COVER
 # ════════════════════════════════════════════════════════════════════════════
@@ -409,8 +444,6 @@ def _page_cover(c, data):
     img_cx = W / 2
     img_cy = H - 345      # center of image circle
     img_r  = 128          # radius of circular image area
-    iw = img_r * 2 - 12
-    ih = img_r * 2 - 12
     img_path = _type_img_path(tid)
 
     # Glow rings
@@ -425,7 +458,7 @@ def _page_cover(c, data):
     c.circle(img_cx, img_cy, img_r + 5, fill=1, stroke=0)
 
     # Image or fallback symbol
-    if not _draw_img_raw(c, img_path, img_cx - iw/2, img_cy - ih/2, iw, ih):
+    if not _draw_circle_cover(c, img_path, img_cx, img_cy, img_r):
         syms = {1:"炎",2:"海",3:"雷",4:"森",5:"月",6:"陽",
                 7:"岳",8:"嵐",9:"花",10:"氷",11:"地",12:"星"}
         c.setFillColor(PRP2)
@@ -447,16 +480,19 @@ def _page_cover(c, data):
         _star(c, sx, sy, 5, 5, GLD if i % 2 == 0 else SLV)
 
     # ── Type name ──
-    bottom_of_img = img_cy - img_r - 5
+    # Ring stars sit at radius img_r+24; bottom-most is at angle ~270°-ish.
+    # Lowest star y = img_cy - (img_r+24)*sin(3π/8).  Add 5pt for star radius.
+    ring_bottom_y = img_cy - (img_r + 24) * math.sin(3 * math.pi / 8) - 10
+    text_y = ring_bottom_y - 16
     type_text = f"◆  {data['type']['name']}  ◆"
     type_fs = _afs(type_text, FNB, 28, 15, CW - 80)
-    _t(c, W/2, bottom_of_img - 22, type_text, FNB, type_fs, GLD3, "center")
+    _t(c, W/2, text_y, type_text, FNB, type_fs, GLD3, "center")
     kw_text = data["type"]["keyword"]
-    _t(c, W/2, bottom_of_img - 44, kw_text, FN, 11, SLV, "center")
-    _diamond_divider(c, bottom_of_img - 58)
+    _t(c, W/2, text_y - 22, kw_text, FN, 11, SLV, "center")
+    _diamond_divider(c, text_y - 36)
 
     # ── Main info box ──
-    box_top = bottom_of_img - 68
+    box_top = text_y - 46
     box_h = 68
     box_y = box_top - box_h
     _double_border(c, CX1 + 18, box_y, CW - 36, box_h, bg=PRP2, gap=5)
