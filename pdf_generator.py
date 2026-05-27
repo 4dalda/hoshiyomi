@@ -72,7 +72,7 @@ W, H = A4   # 595.28 × 841.89
 # ─── Layout constants ──────────────────────────────────────────────────────
 MG  = 22     # page margin
 BDG = 7      # double-border inner gap
-HDR_LINE = 808    # y of header separator line
+HDR_LINE = 785    # y of header separator line
 FTR_LINE = 50     # y of footer separator line
 CX1 = MG + BDG + 10   # content left x
 CX2 = W - MG - BDG - 10  # content right x
@@ -506,12 +506,47 @@ def _page_cover(c, data):
        f"鑑定月：{data['month_str']}",
        FN, 10, GLD, "center")
 
-    # ── Navigator strip ──
-    nav_y = box_y - 20
+    # ── Navigator image section ──
     nav_colors = {"叢雲": HexColor("#8888ff"), "ノヴァ": HexColor("#ff8844"),
                   "フレイヤ": HexColor("#66cc66"), "グレイス": HexColor("#88aacc")}
     nc = nav_colors.get(data["navigator"], GLD)
-    _t(c, W/2, nav_y, f"◆  ナビゲーター：{data['navigator']}  ◆", FN, 11, nc, "center")
+
+    nav_strip_top = box_y - 8
+    nav_strip_bot = FTR_LINE + 14
+    nav_strip_h   = nav_strip_top - nav_strip_bot
+    nav_r  = min(52, max(20, nav_strip_h // 2 - 22))
+    nav_cx = W / 2
+    nav_cy = int((nav_strip_top + nav_strip_bot) / 2) + 14
+
+    # Thin separator above navigator area
+    _hline(c, nav_strip_top, lw=0.5)
+
+    # Subtle glow
+    c.setFillColor(nc)
+    c.setFillAlpha(0.07)
+    c.circle(nav_cx, nav_cy, nav_r + 22, fill=1, stroke=0)
+    c.setFillAlpha(1.0)
+
+    # Dark backing circle
+    c.setFillColor(PRP3)
+    c.circle(nav_cx, nav_cy, nav_r + 4, fill=1, stroke=0)
+
+    # Navigator image (circular clip)
+    nav_path = _nav_img_path(data["navigator"])
+    if not _draw_circle_cover(c, nav_path, nav_cx, nav_cy, nav_r):
+        nav_syms = {"叢雲": "雲", "ノヴァ": "星", "フレイヤ": "猫", "グレイス": "氷"}
+        c.setFillColor(PRP2)
+        c.circle(nav_cx, nav_cy, nav_r - 6, fill=1, stroke=0)
+        _t(c, nav_cx, nav_cy - 16, nav_syms.get(data["navigator"], "◆"), FNB, 36, nc, "center")
+
+    # Gold ring
+    c.setStrokeColor(nc)
+    c.setLineWidth(2.0)
+    c.circle(nav_cx, nav_cy, nav_r + 3, fill=0, stroke=1)
+
+    # Name label below circle (clear of ring bottom)
+    _t(c, W/2, nav_cy - nav_r - 20,
+       f"◆  ニャビゲーター：{data['navigator']}  ◆", FN, 11, nc, "center")
 
     # Bottom corner stars
     _star(c, MG + 18, MG + 18, 10, 5, GLD)

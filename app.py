@@ -44,7 +44,7 @@ def generate():
     if blood not in ("A", "B", "O", "AB"):
         return jsonify({"error": "血液型が不正です"}), 400
     if navigator not in ("叢雲", "ノヴァ", "フレイヤ", "グレイス"):
-        return jsonify({"error": "ナビゲーターが不正です"}), 400
+        return jsonify({"error": "ニャビゲーターが不正です"}), 400
 
     try:
         fortune_data = calculate_all(year, month, day, blood, navigator, name)

@@ -453,7 +453,7 @@
 
     <!-- Navigator -->
     <div class="card">
-      <div class="card-title">✦ ナビゲーター猫を選んでください</div>
+      <div class="card-title">✦ ニャビゲーター猫を選んでください</div>
       <div class="nav-grid" id="nav-grid">
         <label class="nav-card" onclick="selectNav(this, '叢雲')">
           <input type="radio" name="navigator" value="叢雲">
@@ -614,7 +614,7 @@ document.getElementById('form').addEventListener('submit', async (e) => {
   if (!month || month < 1 || month > 12) return showError('生年月日（月）を正しく入力してください。');
   if (!day || day < 1 || day > 31) return showError('生年月日（日）を正しく入力してください。');
   if (!blood) return showError('血液型を選択してください。');
-  if (!selectedNav) return showError('ナビゲーターを選択してください。');
+  if (!selectedNav) return showError('ニャビゲーターを選択してください。');
 
   const btn = document.getElementById('btn-generate');
   const btnText = document.getElementById('btn-text');
