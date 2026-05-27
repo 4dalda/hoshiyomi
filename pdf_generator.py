@@ -301,12 +301,12 @@ def _img_or_frame(c, path, x, y, w, h, label="", type_id=None, nav=None, frame_c
     if type_id:
         syms = {1:"炎",2:"海",3:"雷",4:"森",5:"月",6:"陽",
                 7:"岳",8:"嵐",9:"花",10:"氷",11:"地",12:"星"}
-        sym = syms.get(type_id, "✦")
+        sym = syms.get(type_id, "◆")
         fs = min(w, h) * 0.22
         _t(c, cx, cy - fs*0.35, sym, FNB, fs, TC(type_id), "center")
     elif nav:
         nav_sym = {"叢雲":"雲", "ノヴァ":"星", "フレイヤ":"猫", "グレイス":"氷"}
-        sym = nav_sym.get(nav, "✦")
+        sym = nav_sym.get(nav, "◆")
         fs = min(w, h) * 0.22
         _t(c, cx, cy - fs*0.35, sym, FNB, fs, GLD2, "center")
 
@@ -400,7 +400,7 @@ def _page_cover(c, data):
     _diamond_divider(c, H - 105)
 
     # ── Person name ──
-    name_text = f"◈  {name}  様"
+    name_text = f"◆  {name}  様"
     name_fs = _afs(name_text, FNB, 22, 12, CW - 80)
     _t(c, W/2, H - 138, name_text, FNB, name_fs, GLD3, "center")
     _t(c, W/2, H - 160, "個  人  鑑  定  書", FNB, 13, SLV, "center")
@@ -430,7 +430,7 @@ def _page_cover(c, data):
                 7:"岳",8:"嵐",9:"花",10:"氷",11:"地",12:"星"}
         c.setFillColor(PRP2)
         c.circle(img_cx, img_cy, img_r - 8, fill=1, stroke=0)
-        _t(c, img_cx, img_cy - 24, syms.get(tid, "✦"), FNB, 64, acc, "center")
+        _t(c, img_cx, img_cy - 24, syms.get(tid, "◆"), FNB, 64, acc, "center")
 
     # Gold ring
     c.setStrokeColor(GLD)
@@ -475,7 +475,7 @@ def _page_cover(c, data):
     nav_colors = {"叢雲": HexColor("#8888ff"), "ノヴァ": HexColor("#ff8844"),
                   "フレイヤ": HexColor("#66cc66"), "グレイス": HexColor("#88aacc")}
     nc = nav_colors.get(data["navigator"], GLD)
-    _t(c, W/2, nav_y, f"✦  ナビゲーター：{data['navigator']}  ✦", FN, 11, nc, "center")
+    _t(c, W/2, nav_y, f"◆  ナビゲーター：{data['navigator']}  ◆", FN, 11, nc, "center")
 
     # Bottom corner stars
     _star(c, MG + 18, MG + 18, 10, 5, GLD)
@@ -570,14 +570,14 @@ def _page_fortune(c, data):
 
     # Sub-title (avoids overlapping image)
     sub_x2 = si_x - 10
-    sub_text = f"◈  {data['name']}様の今月の星の流れ"
+    sub_text = f"◆  {data['name']}様の今月の星の流れ"
     sub_fs = _afs(sub_text, FN, 11, 8, sub_x2 - CX1)
     _t(c, CX1, CY2 - 14, sub_text, FN, sub_fs, GLD)
     _diamond_divider(c, CY2 - 28)
 
     cats   = ["総合", "恋愛", "金運", "仕事"]
     labels = {"総合": "総合運", "恋愛": "恋愛運", "金運": "金　運", "仕事": "仕事運"}
-    icons  = {"総合": "✦", "恋愛": "♥", "金運": "◈", "仕事": "★"}
+    icons  = {"総合": "◆", "恋愛": "●", "金運": "◆", "仕事": "★"}
 
     n    = len(cats)
     gap  = 10
@@ -728,7 +728,7 @@ def _page_lucky(c, data):
 
     # ── Lucky Items ──
     iy = top_y - item_h
-    _section_box(c, CX1, iy, CW, item_h, "✦  ラッキーアイテム")
+    _section_box(c, CX1, iy, CW, item_h, "◆  ラッキーアイテム")
     items   = td["lucky_items"]
     col_cnt = 2
     col_w   = CW / col_cnt
@@ -742,7 +742,7 @@ def _page_lucky(c, data):
     # ── Lucky Colors ──
     cy_top = iy - gap
     cy = cy_top - color_h
-    _section_box(c, CX1, cy, CW, color_h, "◈  ラッキーカラー")
+    _section_box(c, CX1, cy, CW, color_h, "◆  ラッキーカラー")
 
     colors = td["lucky_colors"]
     n_col  = len(colors)
@@ -769,7 +769,7 @@ def _page_lucky(c, data):
     _section_box(c, CX1, ay, CW, adv_h, "★  今月のアドバイス")
 
     advice = [
-        f"◉  {data['month_str']}、{td['name']}のあなたへ",
+        f"●  {data['month_str']}、{td['name']}のあなたへ",
         "",
     ]
     # Description (first 50 chars)
@@ -784,9 +784,9 @@ def _page_lucky(c, data):
             continue
         if ay_cursor < ay + 8:
             break
-        col_  = GLD  if line.startswith("◉") else \
+        col_  = GLD  if line.startswith("●") else \
                 GLD2 if line.startswith("◆") else SLV
-        fs_   = 11 if line.startswith("◉") else 10
+        fs_   = 11 if line.startswith("●") else 10
         # Wrap long lines
         wrapped = _wrap(line, FN, fs_, CW - 28)
         for wline in wrapped:
@@ -852,7 +852,7 @@ def _page_back(c, data):
 
     # Type name reminder
     _t(c, W/2, H/2 - 140,
-       f"◈  {data['name']}様  ／  {data['type']['name']}  ◈",
+       f"◆  {data['name']}様  ／  {data['type']['name']}  ◆",
        FN, 11, GLD, "center")
 
     # Bottom corner stars
