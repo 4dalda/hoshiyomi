@@ -369,7 +369,7 @@ def _score_bar(c, x, y, score, bar_w=240, bar_h=13):
         c.roundRect(x + fw - tip_w, y, tip_w, bar_h, bar_h / 2, fill=1, stroke=0)
         c.setFillAlpha(1.0)
     # Score label
-    _t(c, x + bar_w + 9, y + bar_h - 1, f"{score}点", FNB, 12, GLD3)
+    _t(c, x + bar_w + 9, y + 2, f"{score}点", FNB, 12, GLD3)
     # Star rating
     stars = min(5, max(1, round(score / 20)))
     for i in range(5):
@@ -539,7 +539,7 @@ def _page_cover(c, data):
     nav_strip_h   = nav_strip_top - nav_strip_bot
     nav_r  = min(52, max(20, nav_strip_h // 2 - 22))
     nav_cx = W / 2
-    nav_cy = int((nav_strip_top + nav_strip_bot) / 2) + 4
+    nav_cy = int((nav_strip_top + nav_strip_bot) / 2) + 8
 
     # Thin separator above navigator area
     _hline(c, nav_strip_top, lw=0.5)
@@ -692,7 +692,7 @@ def _page_fortune(c, data):
 
         # Score bar  (label + bar)
         bar_y  = by + bh - 44   # bar bottom y
-        _t(c, CX1 + 16, bar_y + 13, "スコア", FN, 9, GLD)
+        _t(c, CX1 + 16, bar_y + 3, "スコア", FN, 9, GLD)
         _score_bar(c, CX1 + 62, bar_y, score, bar_w=215, bar_h=13)
 
         # Thin separator
