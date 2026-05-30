@@ -537,9 +537,9 @@ def _page_cover(c, data):
     nav_strip_top = box_y - 8
     nav_strip_bot = FTR_LINE + 14
     nav_strip_h   = nav_strip_top - nav_strip_bot
-    nav_r  = min(52, max(20, nav_strip_h // 2 - 22))
+    nav_r  = min(56, max(22, nav_strip_h // 2 - 16))
     nav_cx = W / 2
-    nav_cy = int((nav_strip_top + nav_strip_bot) / 2) + 8
+    nav_cy = nav_strip_bot + nav_r + 22   # anchor from bottom for lower placement
 
     # Thin separator above navigator area
     _hline(c, nav_strip_top, lw=0.5)
@@ -583,7 +583,7 @@ def _page_cover(c, data):
 def _page_four_axis(c, data):
     _page_base(c, seed=7)
     _page_header(c, "星詠みChronicle", "◆  四 軸 分 析  ◆", data["name"] + " 様")
-    _page_footer(c, 2, 6)
+    _page_footer(c, 2, 5)
 
     # Sub-title
     _t(c, W/2, CY2 - 14, "あなたを形作る 4 つの力の流れ", FNS, 10, SLV, "center")
@@ -649,7 +649,7 @@ def _page_fortune(c, data):
     _page_base(c, seed=99)
     tid = data["type_id"]
     _page_header(c, "星詠みChronicle", "◆  今 月 の 運 勢  ◆", data["month_str"])
-    _page_footer(c, 3, 6)
+    _page_footer(c, 3, 5)
 
     # Sub-title
     sub_text = f"◆  {data['name']}様の今月の星の流れ"
@@ -706,60 +706,52 @@ def _page_fortune(c, data):
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# PAGE 3 ── ナビゲーターメッセージ
+# PAGE 3 ── ニャビゲーター & 開運情報（合体ページ）
 # ════════════════════════════════════════════════════════════════════════════
 
-def _page_navigator(c, data):
+def _page_nav_lucky(c, data):
     _page_base(c, seed=55)
     nav     = data["navigator"]
     nav_msg = get_navigator_message(nav, data["type_id"], data["name"])
     td      = data["type"]
+    tid     = data["type_id"]
 
     nav_accent = {
-        "叢雲":  HexColor("#9999ff"),
-        "ノヴァ": HexColor("#ff8844"),
+        "叢雲":   HexColor("#9999ff"),
+        "ノヴァ":  HexColor("#ff8844"),
         "フレイヤ": HexColor("#66cc66"),
         "グレイス": HexColor("#88bbcc"),
     }.get(nav, GLD)
 
     _page_header(c, "星詠みChronicle",
-                 f"◆  {nav}  よ り  ◆", data["name"] + " 様")
-    _page_footer(c, 4, 6)
+                 f"◆  ニャビゲーター  &  開 運 情 報  ◆", data["name"] + " 様")
+    _page_footer(c, 4, 5)
 
-    # Section header (serif font for mystical feel)
-    _t(c, W/2, CY2 - 15, nav_msg["header"], FNS, 13, GLD2, "center")
+    _t(c, W/2, CY2 - 15, nav_msg["header"], FNS, 12, GLD2, "center")
     _diamond_divider(c, CY2 - 30)
 
     content_top = CY2 - 38
-    content_h   = content_top - CY1          # ≈ 677 pt
+    content_h   = content_top - CY1   # ≈ 677 pt
+    gap = 10
 
-    # ── Split: upper 62% for image+message, lower 38% for lucky preview ──
-    upper_h  = int(content_h * 0.62)         # ≈ 420 pt
-    lucky_gap = 14
-    lower_h  = content_h - upper_h - lucky_gap   # ≈ 243 pt
-    upper_y1 = content_top - upper_h         # bottom of upper area
-    lower_y1 = CY1                           # = 60
+    # ── UPPER 47%: Navigator image (left) + message (right) ──
+    upper_h  = int(content_h * 0.47)
+    upper_y1 = content_top - upper_h
 
-    # ── LEFT COLUMN: Navigator image (full upper height) ──
-    lw  = 188
-    lx1 = CX1
-    lx2 = CX1 + lw
-
+    lw       = 180
     nav_path = _nav_img_path(nav)
     c.setFillColor(PRP3)
-    c.roundRect(lx1, upper_y1, lw, upper_h, 10, fill=1, stroke=0)
-    _double_border(c, lx1, upper_y1, lw, upper_h, col=nav_accent, gap=6, radius=10)
-
+    c.roundRect(CX1, upper_y1, lw, upper_h, 10, fill=1, stroke=0)
+    _double_border(c, CX1, upper_y1, lw, upper_h, col=nav_accent, gap=6, radius=10)
     pad = 10
     _img_or_frame(c, nav_path,
-                  lx1 + pad, upper_y1 + pad + 28,
+                  CX1 + pad, upper_y1 + pad + 28,
                   lw - pad*2, upper_h - pad*2 - 38,
                   nav, nav=nav, frame_col=nav_accent)
-    _t(c, lx1 + lw/2, upper_y1 + 20, nav, FNS, 14, nav_accent, "center")
+    _t(c, CX1 + lw/2, upper_y1 + 20, nav, FNS, 14, nav_accent, "center")
 
-    # ── RIGHT COLUMN: intro + message (serif) ──
-    rx  = lx2 + 14
-    rw  = CX2 - rx
+    rx = CX1 + lw + 14
+    rw = CX2 - rx
 
     intro_fs = _afs(nav_msg["intro"], FNS, 11, 8, rw)
     _t(c, rx, content_top - 18, nav_msg["intro"], FNS, intro_fs, GLD)
@@ -767,7 +759,6 @@ def _page_navigator(c, data):
     msg_box_h = (content_top - 38) - upper_y1
     _double_border(c, rx, upper_y1, rw, msg_box_h, col=nav_accent, bg=PRP3, gap=6)
 
-    # Decorative opening quote
     c.setFont(FNS, 42)
     c.setFillColor(nav_accent)
     c.setFillAlpha(0.22)
@@ -781,128 +772,55 @@ def _page_navigator(c, data):
         bottom=upper_y1 + 14,
     )
 
-    # ── LOWER AREA: lucky preview from next page ──
-    _diamond_divider(c, upper_y1 - lucky_gap // 2)
+    # ── Divider ──
+    _diamond_divider(c, upper_y1 - gap // 2)
 
-    lucky_box_h = lower_h - 4
-    _section_box(c, CX1, lower_y1, CW, lucky_box_h, "◆  今 月 の ラ ッ キ ー 情 報", GLD)
+    # ── LOWER 53%: Lucky items + colors (top row) + advice (bottom) ──
+    lower_top = upper_y1 - gap
+    lower_h   = lower_top - CY1
 
-    # Two-column layout: items left, color swatches right
     items  = td["lucky_items"]
     colors = td["lucky_colors"]
 
-    mid_x    = CX1 + CW * 0.42
-    row_start = lower_y1 + lucky_box_h - 40   # first row y (below badge)
-    row_step  = 28
+    row_h = 100   # items box and colors box side by side
+    adv_h = lower_h - row_h - gap
 
-    # Items column (left)
-    _t(c, CX1 + 18, row_start + 14, "◆ ラッキーアイテム", FNS, 9, GLD)
+    # Items (left half) and Colors (right half) in one row
+    row_y  = lower_top - row_h
+    half_w = (CW - gap) / 2
+
+    _section_box(c, CX1, row_y, half_w, row_h, "◆  ラッキーアイテム")
     for j, item in enumerate(items):
-        iy = row_start - j * row_step
-        if iy < lower_y1 + 10:
-            break
-        _star(c, CX1 + 22, iy + 5, 4, 5, GLD2)
-        _t(c, CX1 + 34, iy, item, FNS, 11, WHT)
+        iy = row_y + row_h - 38 - j * 24
+        if iy > row_y + 8:
+            _star(c, CX1 + 16, iy + 5, 4, 5, GLD2)
+            _t(c, CX1 + 28, iy, item, FN, 10, WHT)
 
-    # Vertical separator
-    c.setStrokeColor(GLD)
-    c.setLineWidth(0.4)
-    c.setStrokeAlpha(0.4)
-    c.line(mid_x, lower_y1 + 10, mid_x, lower_y1 + lucky_box_h - 22)
-    c.setStrokeAlpha(1.0)
-
-    # Colors column (right) — horizontal swatches
-    cx_start = mid_x + 14
-    cw_avail = CX2 - cx_start - 8
-    _t(c, cx_start, row_start + 14, "◆ ラッキーカラー", FNS, 9, GLD)
+    col_x = CX1 + half_w + gap
+    _section_box(c, col_x, row_y, half_w, row_h, "◆  ラッキーカラー")
+    n_col      = len(colors)
+    sw_spacing = (half_w - 20) / n_col
+    sw_w       = sw_spacing - 8
+    sw_h       = max(34, row_h - 48)
+    sw_y       = row_y + 24
     for j, (cname, chex) in enumerate(colors):
-        sy = row_start - j * row_step
-        if sy < lower_y1 + 10:
-            break
-        sw = 22
-        c.setFillColor(HexColor(chex))
-        c.setStrokeColor(GLD)
-        c.setLineWidth(0.5)
-        c.roundRect(cx_start, sy, sw, 20, 3, fill=1, stroke=1)
-        _t(c, cx_start + sw + 8, sy + 3, cname, FNS, 11, WHT)
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# PAGE 4 ── 今月の開運情報
-# ════════════════════════════════════════════════════════════════════════════
-
-def _page_lucky(c, data):
-    _page_base(c, seed=77)
-    _page_header(c, "星詠みChronicle", "◆  今 月 の 開 運 情 報  ◆",
-                 data["name"] + " 様")
-    _page_footer(c, 5, 6)
-
-    tid = data["type_id"]
-    td  = data["type"]
-
-    _t(c, W/2, CY2 - 14, "あなたに幸運をもたらす星からの贈り物", FN, 10, SLV, "center")
-    _diamond_divider(c, CY2 - 28)
-
-    top_y = CY2 - 36
-    avail = top_y - CY1
-    gap   = 12
-
-    items   = td["lucky_items"]
-    colors  = td["lucky_colors"]
-
-    # Content-adaptive heights: items and colors are compact; advice gets the rest
-    n_item_rows = math.ceil(len(items) / 2)
-    item_h  = max(80, 38 + n_item_rows * 30 + 16)
-    color_h = 100
-    adv_h   = avail - item_h - color_h - gap * 2
-
-    # ── Lucky Items ──
-    iy = top_y - item_h
-    _section_box(c, CX1, iy, CW, item_h, "◆  ラッキーアイテム")
-    col_cnt = 2
-    col_w   = CW / col_cnt
-    for j, item in enumerate(items):
-        ix  = CX1 + 16 + (j % col_cnt) * col_w
-        iy2 = iy + item_h - 38 - (j // col_cnt) * 30
-        if iy2 > iy + 8:
-            _star(c, ix + 5, iy2 + 5, 5, 5, GLD2)
-            _t(c, ix + 16, iy2, item, FN, 11, WHT)
-
-    # ── Lucky Colors ──
-    cy_top = iy - gap
-    cy = cy_top - color_h
-    _section_box(c, CX1, cy, CW, color_h, "◆  ラッキーカラー")
-
-    n_col  = len(colors)
-    swatch_spacing = (CW - 20) / n_col
-    swatch_w = swatch_spacing - 10
-    # Swatch height: box minus badge (top 22pt) and name label (bottom 24pt)
-    swatch_h = max(40, color_h - 46)
-    sy_swatch = cy + 24   # swatch bottom y — keeps name text inside box
-
-    for j, (cname, chex) in enumerate(colors):
-        sx = CX1 + 10 + j * swatch_spacing
+        sx = col_x + 10 + j * sw_spacing
         c.setFillColor(HexColor(chex))
         c.setStrokeColor(GLD)
         c.setLineWidth(0.7)
-        c.roundRect(sx, sy_swatch, swatch_w, swatch_h, 5, fill=1, stroke=1)
-        # Colour name inside box bottom (no more text-outside-border bug)
-        cname_fs = _afs(cname, FN, 10, 7, swatch_w)
-        _t(c, sx + swatch_w/2, cy + 8, cname, FN, cname_fs, WHT, "center")
+        c.roundRect(sx, sw_y, sw_w, sw_h, 5, fill=1, stroke=1)
+        cname_fs = _afs(cname, FN, 9, 7, sw_w)
+        _t(c, sx + sw_w/2, row_y + 8, cname, FN, cname_fs, WHT, "center")
 
-    # ── Monthly Advice ──
-    ay_top = cy - gap
-    ay = ay_top - adv_h
+    # Advice box (full width, character image on right)
+    ay = CY1
     _section_box(c, CX1, ay, CW, adv_h, "★  今月のアドバイス")
 
-    # Character image on the right side of the advice box
-    img_r   = 70
-    img_cx  = CX2 - img_r - 14
-    img_cy  = ay + adv_h // 2
-    img_path = _type_img_path(tid)
-    drawn = _draw_circle_cover(c, img_path, img_cx, img_cy, img_r)
+    img_r  = min(60, adv_h // 2 - 18)
+    img_cx = CX2 - img_r - 14
+    img_cy = ay + adv_h // 2
+    drawn  = _draw_circle_cover(c, _type_img_path(tid), img_cx, img_cy, img_r)
     if drawn:
-        # Gold ring around the character circle
         c.setStrokeColor(TC(tid))
         c.setLineWidth(1.5)
         c.circle(img_cx, img_cy, img_r + 2, fill=0, stroke=1)
@@ -910,23 +828,17 @@ def _page_lucky(c, data):
         c.setLineWidth(0.5)
         c.circle(img_cx, img_cy, img_r + 9, fill=0, stroke=1)
     else:
-        _img_or_frame(c, img_path, img_cx - img_r, ay + 20,
+        _img_or_frame(c, _type_img_path(tid), img_cx - img_r, ay + 20,
                       img_r * 2, adv_h - 40, td["name"], type_id=tid)
 
-    # Text area is the left portion, leaving space for the image
     text_max_w = img_cx - img_r - CX1 - 32
 
-    advice = [
-        f"●  {data['month_str']}、{td['name']}のあなたへ",
-        "",
-        td["desc"],
-        "",
-    ]
+    advice = [f"●  {data['month_str']}、{td['name']}のあなたへ", "", td["desc"], ""]
     advice += [f"◆  {t}" for t in td["traits"]]
     advice += [
         "",
         f"★  星座：{data['zodiac']['name']}　干支：{data['chinese']['name']}　数秘：{data['life_path']['number']}",
-        f"★  今月の星の流れを活かして、あなたらしい一歩を踏み出しましょう。",
+        "★  今月の星の流れを活かして、あなたらしい一歩を踏み出しましょう。",
     ]
 
     ay_cursor = ay + adv_h - 35
@@ -936,11 +848,9 @@ def _page_lucky(c, data):
             continue
         if ay_cursor < ay + 8:
             break
-        col_  = GLD  if line.startswith("●") else \
-                GLD2 if line.startswith("◆") else SLV
-        fs_   = 11 if line.startswith("●") else 10
-        wrapped = _wrap(line, FNS, fs_, text_max_w)
-        for wline in wrapped:
+        col_ = GLD if line.startswith("●") else GLD2 if line.startswith("◆") else SLV
+        fs_  = 11 if line.startswith("●") else 10
+        for wline in _wrap(line, FNS, fs_, text_max_w):
             if ay_cursor < ay + 8:
                 break
             _t(c, CX1 + 18, ay_cursor, wline, FNS, fs_, col_)
@@ -1027,12 +937,11 @@ def generate_pdf(data: dict, output_path: str = None) -> bytes | None:
     cv.setAuthor("星詠みChronicle")
     cv.setSubject(f"{data['type']['name']} 個人鑑定 {data['month_str']}")
 
-    _page_cover(cv, data);     cv.showPage()   # 表紙
-    _page_four_axis(cv, data); cv.showPage()   # p1 四軸分析
-    _page_fortune(cv, data);   cv.showPage()   # p2 運勢スコア
-    _page_navigator(cv, data); cv.showPage()   # p3 ナビゲーター
-    _page_lucky(cv, data);     cv.showPage()   # p4 開運情報
-    _page_back(cv, data);      cv.showPage()   # 裏表紙
+    _page_cover(cv, data);       cv.showPage()   # 表紙
+    _page_four_axis(cv, data);  cv.showPage()   # p1 四軸分析
+    _page_fortune(cv, data);    cv.showPage()   # p2 運勢スコア
+    _page_nav_lucky(cv, data);  cv.showPage()   # p3 ニャビゲーター & 開運情報
+    _page_back(cv, data);       cv.showPage()   # 裏表紙
 
     cv.save()
     if output_path:
