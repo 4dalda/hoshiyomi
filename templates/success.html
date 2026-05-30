@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お支払い完了 ✦ 星詠みChronicle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:     #070714;
+      --bg2:    #0d0d2a;
+      --bg3:    #12123a;
+      --gold:   #d4a843;
+      --gold2:  #f0c040;
+      --silver: #c0bebe;
+      --white:  #f0eee8;
+      --dim:    #666688;
+      --green:  #4ade80;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Noto Serif JP', serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    /* Stars */
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star-dot {
+      position: absolute; border-radius: 50%; background: #d4a843;
+      animation: twinkle var(--dur, 3s) ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      from { opacity: 0.2; transform: scale(0.8); }
+      to   { opacity: 1;   transform: scale(1.2); }
+    }
+
+    .container {
+      position: relative; z-index: 1;
+      max-width: 560px; width: 100%;
+      padding: 40px 24px 60px;
+      text-align: center;
+    }
+
+    .icon-wrap {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+      background: radial-gradient(circle at 40% 35%, rgba(212,168,67,0.12), transparent 70%);
+      animation: pulse 2.5s ease-in-out infinite alternate;
+    }
+    @keyframes pulse {
+      from { box-shadow: 0 0 10px rgba(212,168,67,0.2); }
+      to   { box-shadow: 0 0 30px rgba(212,168,67,0.5); }
+    }
+    .icon-wrap span { font-size: 2.8rem; }
+
+    .logo {
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      color: var(--gold);
+      letter-spacing: 0.35em;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 1.9rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold2), var(--gold), var(--silver));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      letter-spacing: 0.15em; margin-bottom: 10px;
+    }
+    .sub {
+      color: var(--silver); font-size: 0.9rem;
+      line-height: 1.7; letter-spacing: 0.08em;
+      margin-bottom: 32px;
+    }
+
+    .divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: 0 auto 28px; max-width: 320px;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+    }
+    .divider span { color: var(--gold); font-size: 1rem; }
+
+    .card {
+      background: linear-gradient(135deg, var(--bg2), var(--bg3));
+      border: 1px solid rgba(212,168,67,0.3);
+      border-radius: 16px;
+      padding: 28px 24px;
+      margin-bottom: 20px;
+    }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(74,222,128,0.1);
+      border: 1px solid rgba(74,222,128,0.4);
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 0.85rem;
+      color: var(--green);
+      margin-bottom: 20px;
+      letter-spacing: 0.1em;
+    }
+    .status-badge::before { content: '●'; font-size: 0.6rem; }
+
+    .download-info {
+      font-size: 0.9rem;
+      color: var(--silver);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 16px 24px;
+      background: linear-gradient(135deg, #5a3a00, var(--gold), #5a3a00);
+      border: none; border-radius: 10px;
+      color: #0a0a1e;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 1rem; font-weight: 700;
+      letter-spacing: 0.15em;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.3s;
+    }
+    .btn:hover {
+      box-shadow: 0 4px 25px rgba(212,168,67,0.5);
+      transform: translateY(-2px);
+    }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-outline {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 12px 24px;
+      background: transparent;
+      border: 1px solid rgba(212,168,67,0.4);
+      border-radius: 10px;
+      color: var(--gold);
+      font-family: 'Noto Serif JP', serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.3s;
+      margin-top: 12px;
+    }
+    .btn-outline:hover {
+      border-color: var(--gold);
+      background: rgba(212,168,67,0.05);
+    }
+
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(10,10,30,0.3);
+      border-top-color: #0a0a1e;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      text-align: center; padding-top: 32px;
+      color: var(--dim); font-size: 0.78rem; letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="container">
+  <div class="icon-wrap"><span>✦</span></div>
+
+  <div class="logo">✦ HOSHIYOMI CHRONICLE ✦</div>
+  <h1>お支払い完了</h1>
+  <p class="sub">ありがとうございます！<br>星の鑑定書のご購入が確認できました。</p>
+
+  <div class="divider"><span>✦</span></div>
+
+  <div class="card">
+    <div class="status-badge">決済完了</div>
+    <p class="download-info">
+      下のボタンから鑑定書PDFをダウンロードしてください。<br>
+      ダウンロードリンクは<strong style="color:var(--gold)">1時間</strong>有効です。
+    </p>
+
+    <button class="btn" id="btn-download" onclick="startDownload()">
+      <span id="btn-text">✦ 鑑定書PDFをダウンロード ✦</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+
+    <a href="/" class="btn-outline">← トップページに戻る</a>
+  </div>
+
+  <footer>
+    <p>✦ 星詠みChronicle ✦</p>
+    <p style="margin-top:6px">星の導きがあなたの道を照らしますように</p>
+  </footer>
+</div>
+
+<script>
+// Stars
+(function () {
+  const cont = document.getElementById('stars');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star-dot';
+    const size = Math.random() * 3 + 1;
+    Object.assign(s.style, {
+      width: size + 'px', height: size + 'px',
+      top: Math.random() * 100 + '%',
+      left: Math.random() * 100 + '%',
+      '--dur': (Math.random() * 4 + 2) + 's',
+      animationDelay: (Math.random() * 4) + 's',
+      opacity: Math.random() * 0.7 + 0.1,
+    });
+    if (Math.random() > 0.6) s.style.background = '#c0bebe';
+    cont.appendChild(s);
+  }
+})();
+
+const ORDER_ID   = "{{ order_id }}";
+const SESSION_ID = "{{ session_id }}";
+
+function startDownload() {
+  const btn      = document.getElementById('btn-download');
+  const btnText  = document.getElementById('btn-text');
+  const spinner  = document.getElementById('spinner');
+
+  btn.disabled = true;
+  btnText.style.display = 'none';
+  spinner.style.display = 'inline-block';
+
+  const url = `/download?order_id=${encodeURIComponent(ORDER_ID)}&session_id=${encodeURIComponent(SESSION_ID)}`;
+  window.location.href = url;
+
+  // Re-enable button after a short delay (in case of redirect back)
+  setTimeout(() => {
+    btn.disabled = false;
+    btnText.style.display = '';
+    spinner.style.display = 'none';
+  }, 4000);
+}
+
+// Auto-download on page load if params are present
+window.addEventListener('DOMContentLoaded', () => {
+  if (ORDER_ID && SESSION_ID) {
+    setTimeout(startDownload, 800);
+  }
+});
+</script>
+</body>
+</html>

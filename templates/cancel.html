@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>キャンセル ✦ 星詠みChronicle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:     #070714;
+      --bg2:    #0d0d2a;
+      --bg3:    #12123a;
+      --gold:   #d4a843;
+      --gold2:  #f0c040;
+      --silver: #c0bebe;
+      --white:  #f0eee8;
+      --dim:    #666688;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Noto Serif JP', serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star-dot {
+      position: absolute; border-radius: 50%; background: #d4a843;
+      animation: twinkle var(--dur, 3s) ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      from { opacity: 0.2; transform: scale(0.8); }
+      to   { opacity: 1;   transform: scale(1.2); }
+    }
+
+    .container {
+      position: relative; z-index: 1;
+      max-width: 520px; width: 100%;
+      padding: 40px 24px 60px;
+      text-align: center;
+    }
+
+    .icon-wrap {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: 1px solid rgba(212,168,67,0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      background: radial-gradient(circle at 40% 35%, rgba(100,100,180,0.10), transparent 70%);
+    }
+    .icon-wrap span { font-size: 2.4rem; }
+
+    .logo {
+      font-family: 'Cinzel', serif; font-size: 0.85rem;
+      color: var(--gold); letter-spacing: 0.35em; margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 1.7rem; font-weight: 700;
+      color: var(--silver);
+      letter-spacing: 0.12em; margin-bottom: 10px;
+    }
+    .sub {
+      color: var(--dim); font-size: 0.9rem;
+      line-height: 1.7; letter-spacing: 0.08em;
+      margin-bottom: 32px;
+    }
+
+    .divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: 0 auto 28px; max-width: 280px;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(to right, transparent, rgba(212,168,67,0.4), transparent);
+    }
+    .divider span { color: var(--dim); font-size: 0.9rem; }
+
+    .card {
+      background: linear-gradient(135deg, var(--bg2), var(--bg3));
+      border: 1px solid rgba(212,168,67,0.2);
+      border-radius: 16px;
+      padding: 24px 20px;
+      margin-bottom: 16px;
+      font-size: 0.9rem; color: var(--silver);
+      line-height: 1.8;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 16px 24px;
+      background: linear-gradient(135deg, #5a3a00, var(--gold), #5a3a00);
+      border: none; border-radius: 10px;
+      color: #0a0a1e;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 1rem; font-weight: 700;
+      letter-spacing: 0.15em;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.3s;
+    }
+    .btn:hover {
+      box-shadow: 0 4px 25px rgba(212,168,67,0.4);
+      transform: translateY(-2px);
+    }
+
+    footer {
+      text-align: center; padding-top: 32px;
+      color: var(--dim); font-size: 0.78rem; letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="container">
+  <div class="icon-wrap"><span>🌙</span></div>
+
+  <div class="logo">✦ HOSHIYOMI CHRONICLE ✦</div>
+  <h1>キャンセル</h1>
+  <p class="sub">
+    {% if message %}
+      {{ message }}
+    {% else %}
+      お支払いがキャンセルされました。<br>
+      いつでもまた鑑定を受け付けております。
+    {% endif %}
+  </p>
+
+  <div class="divider"><span>✦</span></div>
+
+  <div class="card">
+    ご不明な点がございましたら、<br>
+    お気軽にお問い合わせください。<br>
+    お支払いは完了していないため、<br>
+    <strong style="color:var(--gold)">課金は一切発生していません。</strong>
+  </div>
+
+  <a href="/" class="btn">✦ トップページに戻る ✦</a>
+
+  <footer>
+    <p>✦ 星詠みChronicle ✦</p>
+    <p style="margin-top:6px">星の導きがあなたの道を照らしますように</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  const cont = document.getElementById('stars');
+  for (let i = 0; i < 50; i++) {
+    const s = document.createElement('div');
+    s.className = 'star-dot';
+    const size = Math.random() * 2.5 + 1;
+    Object.assign(s.style, {
+      width: size + 'px', height: size + 'px',
+      top: Math.random() * 100 + '%',
+      left: Math.random() * 100 + '%',
+      '--dur': (Math.random() * 4 + 2) + 's',
+      animationDelay: (Math.random() * 4) + 's',
+      opacity: Math.random() * 0.5 + 0.1,
+    });
+    if (Math.random() > 0.6) s.style.background = '#c0bebe';
+    cont.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>

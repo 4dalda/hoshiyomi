@@ -317,6 +317,30 @@
       text-align: right;
     }
 
+    /* ── Price notice ── */
+    .price-notice {
+      text-align: center;
+      margin-bottom: 12px;
+      color: var(--silver);
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+    }
+    .price-notice .price {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gold2);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .price-notice .secure-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--dim);
+      margin-top: 6px;
+    }
+
     /* ── Submit button ── */
     .btn-generate {
       width: 100%;
@@ -510,9 +534,14 @@
       </div>
     </div>
 
-    <!-- Submit -->
+    <!-- Price & Submit -->
+    <div class="price-notice">
+      <span class="price">¥500（税込）</span>
+      あなただけの星の鑑定書をPDFでお届けします
+      <span class="secure-badge">🔒 Stripeによる安全な決済</span>
+    </div>
     <button type="submit" class="btn-generate" id="btn-generate">
-      <span id="btn-text">✦ 鑑定PDFを生成する ✦</span>
+      <span id="btn-text">✦ 500円で鑑定書を購入する ✦</span>
       <div class="spinner" id="spinner"></div>
     </button>
     <div class="error-msg" id="error-msg"></div>
@@ -624,7 +653,7 @@ document.getElementById('form').addEventListener('submit', async (e) => {
   spinner.style.display = 'block';
 
   try {
-    const res = await fetch('/api/generate', {
+    const res = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ year, month, day, blood, navigator: selectedNav, name }),
@@ -632,21 +661,13 @@ document.getElementById('form').addEventListener('submit', async (e) => {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: 'サーバーエラーが発生しました。' }));
-      throw new Error(err.error || 'PDF生成に失敗しました。');
+      throw new Error(err.error || 'チェックアウトエラーが発生しました。');
     }
 
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `hoshiyomi_${name}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const data = await res.json();
+    window.location.href = data.checkout_url;
   } catch (err) {
     showError(err.message);
-  } finally {
     btn.disabled = false;
     btnText.style.display = '';
     spinner.style.display = 'none';
