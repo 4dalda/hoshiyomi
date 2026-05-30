@@ -85,6 +85,8 @@ PRP  = HexColor("#6a4ea8")
 GLD  = HexColor("#c9a84c")   # main gold (user specified)
 GLD2 = HexColor("#e8c060")
 GLD3 = HexColor("#f5d878")
+GLD_DARK = HexColor("#7a5d10")   # gold shadow for depth/bevel
+GLD_LITE = HexColor("#fffac8")   # bright gold highlight/gloss
 SLV  = HexColor("#c8c4bc")
 WHT  = HexColor("#f0ece8")
 DIM  = HexColor("#505070")
@@ -140,36 +142,85 @@ def _moon(c, cx, cy, r, col=None):
 def _scatter_stars(c, n=45, seed=0):
     import random
     rng = random.Random(seed)
+    # Nebula cloud layers (soft colour volumes for depth)
+    nebula = [
+        (rng.uniform(W*0.1, W*0.4), rng.uniform(H*0.55, H*0.85),
+         rng.uniform(90, 160), HexColor("#1a1060"), rng.uniform(0.10, 0.17)),
+        (rng.uniform(W*0.6, W*0.9), rng.uniform(H*0.15, H*0.50),
+         rng.uniform(80, 140), HexColor("#081840"), rng.uniform(0.09, 0.15)),
+        (rng.uniform(W*0.35, W*0.65), rng.uniform(H*0.3, H*0.7),
+         rng.uniform(110, 190), HexColor("#0f0830"), rng.uniform(0.07, 0.13)),
+    ]
+    for nx, ny, nr, ncol, nalpha in nebula:
+        c.setFillColor(ncol)
+        c.setFillAlpha(nalpha)
+        c.circle(nx, ny, nr, fill=1, stroke=0)
+    c.setFillAlpha(1.0)
+    # Point stars
     for _ in range(n):
         x = rng.uniform(MG + 15, W - MG - 15)
         y = rng.uniform(MG + 15, H - MG - 15)
-        r = rng.uniform(0.8, 2.6)
-        alpha = rng.uniform(0.12, 0.60)
+        r = rng.uniform(0.6, 2.8)
+        alpha = rng.uniform(0.14, 0.75)
         col = GLD if rng.random() > 0.45 else SLV
         c.setFillColor(col)
         c.setFillAlpha(alpha)
         c.circle(x, y, r, fill=1, stroke=0)
+    # Bright sparkle stars (4-pointed)
+    for _ in range(5):
+        sx = rng.uniform(MG + 25, W - MG - 25)
+        sy = rng.uniform(MG + 25, H - MG - 25)
+        _star(c, sx, sy, rng.uniform(2.5, 4.5), 4, GLD2)
     c.setFillAlpha(1.0)
 
 
 def _double_border(c, x, y, w, h, col=None, bg=None, gap=5, radius=6):
-    """Gold double-line border with optional background."""
+    """Layered gold border with bevel + gloss effect."""
     col = col or GLD
     if bg is not None:
         c.setFillColor(bg)
         c.roundRect(x, y, w, h, radius, fill=1, stroke=0)
-    c.setStrokeColor(col)
-    c.setLineWidth(1.5)
+    # Shadow/depth layer (dark gold, slightly larger)
+    c.setStrokeColor(GLD_DARK)
+    c.setLineWidth(3.5)
+    c.setStrokeAlpha(0.40)
     c.roundRect(x, y, w, h, radius, fill=0, stroke=1)
+    c.setStrokeAlpha(1.0)
+    # Main border
     c.setStrokeColor(col)
-    c.setLineWidth(0.6)
+    c.setLineWidth(1.6)
+    c.roundRect(x, y, w, h, radius, fill=0, stroke=1)
+    # Bright highlight stroke
+    c.setStrokeColor(GLD_LITE)
+    c.setLineWidth(0.55)
+    c.setStrokeAlpha(0.55)
+    c.roundRect(x, y, w, h, radius, fill=0, stroke=1)
+    c.setStrokeAlpha(1.0)
+    # Inner border
+    c.setStrokeColor(col)
+    c.setLineWidth(0.65)
     c.roundRect(x + gap, y + gap, w - 2*gap, h - 2*gap,
                 max(radius - 2, 2), fill=0, stroke=1)
+    # Top-edge gloss strip (simulates curved light catch)
+    c.setFillColor(GLD_LITE)
+    c.setFillAlpha(0.07)
+    c.roundRect(x + gap + 2, y + h - gap - 3, w - 2*gap - 4, 3, 2, fill=1, stroke=0)
+    c.setFillAlpha(1.0)
 
 
 def _corner_stars(c, x, y, w, h, r=7):
     for px, py in [(x+14, y+14), (x+w-14, y+14), (x+14, y+h-14), (x+w-14, y+h-14)]:
-        _star(c, px, py, r, 4, GLD)
+        # Glow behind corner ornament
+        c.setFillColor(GLD2)
+        c.setFillAlpha(0.18)
+        c.circle(px, py, r + 4, fill=1, stroke=0)
+        c.setFillAlpha(1.0)
+        _star(c, px, py, r, 4, GLD2)
+        _star(c, px, py, r * 0.55, 4, GLD_LITE)
+    # Mid-side small ornaments
+    for px, py in [(x + w/2, y + 10), (x + w/2, y + h - 10),
+                   (x + 10, y + h/2), (x + w - 10, y + h/2)]:
+        _star(c, px, py, r * 0.5, 4, GLD)
 
 
 def _hline(c, y, x1=None, x2=None, col=None, lw=0.7):
@@ -249,10 +300,22 @@ def _page_base(c, seed=0):
     c.setFillColor(BG)
     c.rect(0, 0, W, H, fill=1, stroke=0)
     _scatter_stars(c, n=50, seed=seed)
-    # Outer border
+    # Outer border — shadow layer
+    c.setStrokeColor(GLD_DARK)
+    c.setLineWidth(4.2)
+    c.setStrokeAlpha(0.35)
+    c.rect(MG - 1, MG - 1, W - 2*MG + 2, H - 2*MG + 2, fill=0, stroke=1)
+    c.setStrokeAlpha(1.0)
+    # Outer border — main gold
     c.setStrokeColor(GLD)
     c.setLineWidth(1.8)
     c.rect(MG, MG, W - 2*MG, H - 2*MG, fill=0, stroke=1)
+    # Outer border — bright highlight
+    c.setStrokeColor(GLD_LITE)
+    c.setLineWidth(0.5)
+    c.setStrokeAlpha(0.45)
+    c.rect(MG, MG, W - 2*MG, H - 2*MG, fill=0, stroke=1)
+    c.setStrokeAlpha(1.0)
     # Inner border
     c.setStrokeColor(GLD)
     c.setLineWidth(0.65)
@@ -342,11 +405,16 @@ def _img_or_frame(c, path, x, y, w, h, label="", type_id=None, nav=None, frame_c
 # ─── Score bar component ───────────────────────────────────────────────────
 
 def _score_bar(c, x, y, score, bar_w=240, bar_h=13):
-    """Draw a score progress bar (x,y = bottom-left of bar)."""
-    # Track
+    """Draw a glossy score progress bar."""
+    # Track — dark inset shadow
+    c.setFillColor(BG)
+    c.setFillAlpha(0.55)
+    c.roundRect(x + 1, y - 1, bar_w, bar_h, bar_h / 2, fill=1, stroke=0)
+    c.setFillAlpha(1.0)
+    # Track body
     c.setFillColor(PRP3)
-    c.setStrokeColor(GLD)
-    c.setLineWidth(0.6)
+    c.setStrokeColor(GLD_DARK)
+    c.setLineWidth(0.7)
     c.roundRect(x, y, bar_w, bar_h, bar_h / 2, fill=1, stroke=1)
     # Fill
     fw = bar_w * score / 100
@@ -355,19 +423,28 @@ def _score_bar(c, x, y, score, bar_w=240, bar_h=13):
              HexColor("#9b7914") if score >= 70 else PRP
         c.setFillColor(fc)
         c.roundRect(x, y, fw, bar_h, bar_h / 2, fill=1, stroke=0)
-        # Shine strip
-        c.setFillColor(WHT)
-        c.setFillAlpha(0.15)
-        shine_h = bar_h * 0.35
-        c.roundRect(x + 2, y + bar_h * 0.55, max(fw - 4, 0), shine_h, 2,
+        # Bottom shadow band (gives cylindrical depth)
+        c.setFillColor(GLD_DARK)
+        c.setFillAlpha(0.28)
+        c.roundRect(x, y, fw, bar_h * 0.38, bar_h / 2, fill=1, stroke=0)
+        c.setFillAlpha(1.0)
+        # Main gloss shine strip
+        c.setFillColor(GLD_LITE)
+        c.setFillAlpha(0.38)
+        shine_h = bar_h * 0.38
+        c.roundRect(x + 2, y + bar_h * 0.54, max(fw - 4, 0), shine_h, 2,
                     fill=1, stroke=0)
         c.setFillAlpha(1.0)
-        # Bright tip
-        tip_w = min(18, fw)
-        c.setFillColor(GLD3)
-        c.setFillAlpha(0.5)
+        # Bright tip glow
+        tip_w = min(24, fw)
+        c.setFillColor(GLD_LITE)
+        c.setFillAlpha(0.50)
         c.roundRect(x + fw - tip_w, y, tip_w, bar_h, bar_h / 2, fill=1, stroke=0)
         c.setFillAlpha(1.0)
+        # Border on fill
+        c.setStrokeColor(GLD2)
+        c.setLineWidth(0.5)
+        c.roundRect(x, y, fw, bar_h, bar_h / 2, fill=0, stroke=1)
     # Score label
     _t(c, x + bar_w + 9, y + 2, f"{score}点", FNB, 12, GLD3)
     # Star rating
@@ -380,21 +457,47 @@ def _score_bar(c, x, y, score, bar_w=240, bar_h=13):
 # ─── Section box component ─────────────────────────────────────────────────
 
 def _section_box(c, x, y, w, h, title="", accent=None):
-    """Filled section box with double border, accent bar, and title tab."""
+    """Section box with jewel-like gloss and layered borders."""
     accent = accent or GLD
-    # Fill
+    # Base fill
     c.setFillColor(BG3)
     c.roundRect(x, y, w, h, 6, fill=1, stroke=0)
-    # Double border
+    # Upper-half inner glow (jewel glass effect)
+    c.setFillColor(accent)
+    c.setFillAlpha(0.055)
+    c.roundRect(x + 3, y + h // 2, w - 6, h // 2 - 3, 4, fill=1, stroke=0)
+    c.setFillAlpha(1.0)
+    # Bottom shadow darkening
+    c.setFillColor(BG)
+    c.setFillAlpha(0.22)
+    c.roundRect(x + 3, y + 3, w - 6, h // 4, 3, fill=1, stroke=0)
+    c.setFillAlpha(1.0)
+    # Double border (now includes shadow + highlight layers)
     _double_border(c, x, y, w, h, col=accent, gap=4, radius=6)
     # Left accent stripe
     c.setFillColor(accent)
     c.roundRect(x, y, 5, h, 3, fill=1, stroke=0)
+    # Gloss on accent stripe
+    c.setFillColor(GLD_LITE)
+    c.setFillAlpha(0.32)
+    c.roundRect(x + 1, y + int(h * 0.55), 2, int(h * 0.34), 2, fill=1, stroke=0)
+    c.setFillAlpha(1.0)
     # Title badge
     if title:
         tw = SW(title, FNB, 10) + 16
+        # Badge shadow
+        c.setFillColor(GLD_DARK)
+        c.setFillAlpha(0.50)
+        c.roundRect(x + 13, y + h - 20, tw, 20, 5, fill=1, stroke=0)
+        c.setFillAlpha(1.0)
+        # Badge base
         c.setFillColor(accent)
         c.roundRect(x + 12, y + h - 19, tw, 20, 5, fill=1, stroke=0)
+        # Badge gloss (upper half)
+        c.setFillColor(GLD_LITE)
+        c.setFillAlpha(0.24)
+        c.roundRect(x + 12, y + h - 9, tw, 9, 4, fill=1, stroke=0)
+        c.setFillAlpha(1.0)
         _t(c, x + 12 + tw/2, y + h - 14, title, FNB, 10, BG, "center")
 
 
@@ -433,6 +536,43 @@ def _draw_circle_cover(c, img_path, cx, cy, r):
         return False
 
 
+def _ornate_ring(c, cx, cy, r, col):
+    """Multi-layer baroque-style ring: shadow → main gold → highlight → outer ring with dots."""
+    # Deep shadow ring (bevel depth)
+    c.setStrokeColor(GLD_DARK)
+    c.setLineWidth(5.0)
+    c.setStrokeAlpha(0.42)
+    c.circle(cx, cy, r + 5, fill=0, stroke=1)
+    c.setStrokeAlpha(1.0)
+    # Main gold ring
+    c.setStrokeColor(col)
+    c.setLineWidth(2.8)
+    c.circle(cx, cy, r + 4, fill=0, stroke=1)
+    # Bright highlight ring
+    c.setStrokeColor(GLD_LITE)
+    c.setLineWidth(0.75)
+    c.setStrokeAlpha(0.60)
+    c.circle(cx, cy, r + 4, fill=0, stroke=1)
+    c.setStrokeAlpha(1.0)
+    # Inner accent ring
+    c.setStrokeColor(col)
+    c.setLineWidth(1.0)
+    c.setStrokeAlpha(0.55)
+    c.circle(cx, cy, r + 1, fill=0, stroke=1)
+    c.setStrokeAlpha(1.0)
+    # Outer decorative ring
+    c.setStrokeColor(GLD2)
+    c.setLineWidth(0.55)
+    c.circle(cx, cy, r + 14, fill=0, stroke=1)
+    # Decorative dots at 8 cardinal/intercardinal positions
+    for i in range(8):
+        angle = math.pi / 8 + i * math.pi / 4
+        dx = cx + (r + 14) * math.cos(angle)
+        dy = cy + (r + 14) * math.sin(angle)
+        c.setFillColor(GLD2)
+        c.circle(dx, dy, 2.2, fill=1, stroke=0)
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # PAGE 0 ── COVER
 # ════════════════════════════════════════════════════════════════════════════
@@ -453,6 +593,12 @@ def _page_cover(c, data):
     # ── Site title (serif fonts for elegant fortune-telling look) ──
     title_text = "星 詠 み  Chronicle"
     title_fs = _afs(title_text, FNS, 26, 14, CW - 60)
+    # Title backing glow
+    tw_px = SW(title_text, FNS, title_fs)
+    c.setFillColor(GLD)
+    c.setFillAlpha(0.07)
+    c.roundRect(W/2 - tw_px/2 - 18, H - 82, tw_px + 36, 28, 6, fill=1, stroke=0)
+    c.setFillAlpha(1.0)
     _t(c, W/2, H - 72, title_text, FNS, title_fs, GLD2, "center")
     _t(c, W/2, H - 92, "〜  Personal Fortune Reading  〜", FN, 9, SLV, "center")
     _diamond_divider(c, H - 105)
@@ -469,16 +615,20 @@ def _page_cover(c, data):
     img_r  = 128          # radius of circular image area
     img_path = _type_img_path(tid)
 
-    # Glow rings
+    # Nebula glow behind character (blue layer + accent layer)
+    for i in range(7, 0, -1):
+        c.setFillColor(HexColor("#1a1060"))
+        c.setFillAlpha(0.05 * i)
+        c.circle(img_cx, img_cy, img_r + i * 18, fill=1, stroke=0)
     for i in range(5, 0, -1):
         c.setFillColor(acc)
-        c.setFillAlpha(0.04 * i)
+        c.setFillAlpha(0.035 * i)
         c.circle(img_cx, img_cy, img_r + i * 14, fill=1, stroke=0)
     c.setFillAlpha(1.0)
 
     # Dark circle backing
     c.setFillColor(PRP3)
-    c.circle(img_cx, img_cy, img_r + 5, fill=1, stroke=0)
+    c.circle(img_cx, img_cy, img_r + 6, fill=1, stroke=0)
 
     # Image or fallback symbol
     if not _draw_circle_cover(c, img_path, img_cx, img_cy, img_r):
@@ -488,24 +638,19 @@ def _page_cover(c, data):
         c.circle(img_cx, img_cy, img_r - 8, fill=1, stroke=0)
         _t(c, img_cx, img_cy - 24, syms.get(tid, "◆"), FNB, 64, acc, "center")
 
-    # Gold ring
-    c.setStrokeColor(GLD)
-    c.setLineWidth(2.2)
-    c.circle(img_cx, img_cy, img_r + 5, fill=0, stroke=1)
-    c.setStrokeColor(GLD2)
-    c.setLineWidth(0.8)
-    c.circle(img_cx, img_cy, img_r + 14, fill=0, stroke=1)
-    # Ring stars
+    # Ornate multi-layer ring
+    _ornate_ring(c, img_cx, img_cy, img_r, GLD)
+    # Ring stars at outer radius
     for i in range(8):
         angle = math.pi/8 + i * math.pi/4
-        sx = img_cx + (img_r + 24) * math.cos(angle)
-        sy = img_cy + (img_r + 24) * math.sin(angle)
+        sx = img_cx + (img_r + 28) * math.cos(angle)
+        sy = img_cy + (img_r + 28) * math.sin(angle)
         _star(c, sx, sy, 5, 5, GLD if i % 2 == 0 else SLV)
 
     # ── Type name ──
     # Ring stars sit at radius img_r+24; bottom-most is at angle ~270°-ish.
     # Lowest star y = img_cy - (img_r+24)*sin(3π/8).  Add 5pt for star radius.
-    ring_bottom_y = img_cy - (img_r + 24) * math.sin(3 * math.pi / 8) - 10
+    ring_bottom_y = img_cy - (img_r + 28) * math.sin(3 * math.pi / 8) - 10
     text_y = ring_bottom_y - 16
     type_text = f"◆  {data['type']['name']}  ◆"
     type_fs = _afs(type_text, FNB, 28, 15, CW - 80)
@@ -672,12 +817,30 @@ def _page_fortune(c, data):
         msg   = data["type"]["fortune_messages"][cat]
         by    = top_y - i * (bh + gap) - bh
 
-        # Block background + gold border
+        # Block background
         c.setFillColor(BG2)
         c.roundRect(CX1, by, CW, bh, 7, fill=1, stroke=0)
+        # Upper-half jewel glow
+        c.setFillColor(TC(tid))
+        c.setFillAlpha(0.04)
+        c.roundRect(CX1 + 3, by + bh // 2, CW - 6, bh // 2 - 3, 5, fill=1, stroke=0)
+        c.setFillAlpha(1.0)
+        # Shadow layer
+        c.setStrokeColor(GLD_DARK)
+        c.setLineWidth(3.2)
+        c.setStrokeAlpha(0.35)
+        c.roundRect(CX1, by, CW, bh, 7, fill=0, stroke=1)
+        c.setStrokeAlpha(1.0)
+        # Main border
         c.setStrokeColor(GLD)
         c.setLineWidth(0.9)
         c.roundRect(CX1, by, CW, bh, 7, fill=0, stroke=1)
+        # Highlight border
+        c.setStrokeColor(GLD_LITE)
+        c.setLineWidth(0.4)
+        c.setStrokeAlpha(0.45)
+        c.roundRect(CX1, by, CW, bh, 7, fill=0, stroke=1)
+        c.setStrokeAlpha(1.0)
         # Inner thin border
         c.setStrokeColor(GLD)
         c.setLineWidth(0.35)
@@ -821,12 +984,7 @@ def _page_nav_lucky(c, data):
     img_cy = ay + adv_h // 2
     drawn  = _draw_circle_cover(c, _type_img_path(tid), img_cx, img_cy, img_r)
     if drawn:
-        c.setStrokeColor(TC(tid))
-        c.setLineWidth(1.5)
-        c.circle(img_cx, img_cy, img_r + 2, fill=0, stroke=1)
-        c.setStrokeColor(GLD2)
-        c.setLineWidth(0.5)
-        c.circle(img_cx, img_cy, img_r + 9, fill=0, stroke=1)
+        _ornate_ring(c, img_cx, img_cy, img_r, TC(tid))
     else:
         _img_or_frame(c, _type_img_path(tid), img_cx - img_r, ay + 20,
                       img_r * 2, adv_h - 40, td["name"], type_id=tid)
