@@ -226,60 +226,17 @@ def _corner_stars(c, x, y, w, h, r=7):
 def _hline(c, y, x1=None, x2=None, col=None, lw=0.7):
     x1 = x1 if x1 is not None else MG + BDG + 5
     x2 = x2 if x2 is not None else W - MG - BDG - 5
-    col = col or GLD
-    # Shadow below (depth/bevel)
-    c.setStrokeColor(GLD_DARK)
-    c.setLineWidth(lw + 1.1)
-    c.setStrokeAlpha(0.28)
-    c.line(x1, y - 0.5, x2, y - 0.5)
-    c.setStrokeAlpha(1.0)
-    # Main gold line
-    c.setStrokeColor(col)
+    c.setStrokeColor(col or GLD)
     c.setLineWidth(lw)
     c.line(x1, y, x2, y)
-    # Bright centre highlight (light from above)
-    c.setStrokeColor(GLD_LITE)
-    c.setLineWidth(max(lw * 0.28, 0.22))
-    c.setStrokeAlpha(0.58)
-    c.line(x1, y + max(lw * 0.28, 0.28), x2, y + max(lw * 0.28, 0.28))
-    c.setStrokeAlpha(1.0)
 
 
 def _diamond_divider(c, y, x1=None, x2=None):
+    _hline(c, y, x1, x2)
     xl = (x1 if x1 is not None else MG + BDG + 5)
     xr = (x2 if x2 is not None else W - MG - BDG - 5)
-    # Triple-line style (thin dark + bright main + thin dark, like the reference)
-    c.setStrokeColor(GLD_DARK)
-    c.setLineWidth(0.35)
-    c.setStrokeAlpha(0.45)
-    c.line(xl, y + 3.0, xr, y + 3.0)
-    c.line(xl, y - 3.0, xr, y - 3.0)
-    c.setStrokeAlpha(1.0)
-    # Main metallic centre line
-    _hline(c, y, xl, xr, col=GLD, lw=1.0)
-    # End ornaments
-    _star(c, xl - 6, y, 5, 4, GLD2)
-    _star(c, xr + 6, y, 5, 4, GLD2)
-
-
-def _gold_gradient_fill(c, x, y, w, h, radius=0, steps=10):
-    """Simulate metallic vertical gradient: dark edges → bright centre → dark edges."""
-    for i in range(steps):
-        t = (i + 0.5) / steps          # 0 = bottom, 1 = top
-        brightness = 1.0 - (2*t - 1)**2  # 0→0, 0.5→1.0, 1→0 (quadratic peak at centre)
-        sy = y + i * h / steps
-        sh = h / steps + 0.6
-        if brightness > 0.55:
-            c.setFillColor(GLD_LITE)
-            c.setFillAlpha(brightness * 0.38)
-        else:
-            c.setFillColor(GLD_DARK)
-            c.setFillAlpha((1.0 - brightness) * 0.22)
-        if radius > 0:
-            c.roundRect(x, sy, w, sh, radius, fill=1, stroke=0)
-        else:
-            c.rect(x, sy, w, sh, fill=1, stroke=0)
-    c.setFillAlpha(1.0)
+    _star(c, xl - 6, y, 5, 4, GLD)
+    _star(c, xr + 6, y, 5, 4, GLD)
 
 
 # ─── Text helpers ──────────────────────────────────────────────────────────
@@ -363,10 +320,6 @@ def _page_base(c, seed=0):
     c.setStrokeColor(GLD)
     c.setLineWidth(0.65)
     c.rect(MG + BDG, MG + BDG, W - 2*(MG + BDG), H - 2*(MG + BDG), fill=0, stroke=1)
-    # Metallic gradient fill on top and bottom border bands
-    band = BDG + 4
-    _gold_gradient_fill(c, MG, H - MG - band, W - 2*MG, band)   # top band
-    _gold_gradient_fill(c, MG, MG, W - 2*MG, band)               # bottom band
     _corner_stars(c, MG, MG, W - 2*MG, H - 2*MG, r=9)
 
 
@@ -521,10 +474,14 @@ def _section_box(c, x, y, w, h, title="", accent=None):
     c.setFillAlpha(1.0)
     # Double border (now includes shadow + highlight layers)
     _double_border(c, x, y, w, h, col=accent, gap=4, radius=6)
-    # Left accent stripe — base + metallic gradient
+    # Left accent stripe
     c.setFillColor(accent)
     c.roundRect(x, y, 5, h, 3, fill=1, stroke=0)
-    _gold_gradient_fill(c, x, y, 5, h, radius=3)
+    # Gloss on accent stripe
+    c.setFillColor(GLD_LITE)
+    c.setFillAlpha(0.32)
+    c.roundRect(x + 1, y + int(h * 0.55), 2, int(h * 0.34), 2, fill=1, stroke=0)
+    c.setFillAlpha(1.0)
     # Title badge
     if title:
         tw = SW(title, FNB, 10) + 16
@@ -536,8 +493,11 @@ def _section_box(c, x, y, w, h, title="", accent=None):
         # Badge base
         c.setFillColor(accent)
         c.roundRect(x + 12, y + h - 19, tw, 20, 5, fill=1, stroke=0)
-        # Metallic gradient on badge
-        _gold_gradient_fill(c, x + 12, y + h - 19, tw, 20, radius=5)
+        # Badge gloss (upper half)
+        c.setFillColor(GLD_LITE)
+        c.setFillAlpha(0.24)
+        c.roundRect(x + 12, y + h - 9, tw, 9, 4, fill=1, stroke=0)
+        c.setFillAlpha(1.0)
         _t(c, x + 12 + tw/2, y + h - 14, title, FNB, 10, BG, "center")
 
 
@@ -611,19 +571,6 @@ def _ornate_ring(c, cx, cy, r, col):
         dy = cy + (r + 14) * math.sin(angle)
         c.setFillColor(GLD2)
         c.circle(dx, dy, 2.2, fill=1, stroke=0)
-    # Metallic torus highlight: bright arc at top of ring (simulates light from above)
-    rr = r + 4
-    c.setStrokeColor(GLD_LITE)
-    c.setLineWidth(2.0)
-    c.setStrokeAlpha(0.50)
-    c.arc(cx - rr, cy - rr, cx + rr, cy + rr, startAng=35, extent=110)
-    c.setStrokeAlpha(1.0)
-    # Dark shadow arc at bottom
-    c.setStrokeColor(GLD_DARK)
-    c.setLineWidth(1.5)
-    c.setStrokeAlpha(0.35)
-    c.arc(cx - rr, cy - rr, cx + rr, cy + rr, startAng=215, extent=110)
-    c.setStrokeAlpha(1.0)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -646,20 +593,12 @@ def _page_cover(c, data):
     # ── Site title (serif fonts for elegant fortune-telling look) ──
     title_text = "星 詠 み  Chronicle"
     title_fs = _afs(title_text, FNS, 26, 14, CW - 60)
-    # Title backing — gradient gold band
+    # Title backing glow
     tw_px = SW(title_text, FNS, title_fs)
-    bx = W/2 - tw_px/2 - 18
-    bw = tw_px + 36
-    c.setFillColor(GLD_DARK)
-    c.setFillAlpha(0.18)
-    c.roundRect(bx, H - 82, bw, 28, 6, fill=1, stroke=0)
+    c.setFillColor(GLD)
+    c.setFillAlpha(0.07)
+    c.roundRect(W/2 - tw_px/2 - 18, H - 82, tw_px + 36, 28, 6, fill=1, stroke=0)
     c.setFillAlpha(1.0)
-    _gold_gradient_fill(c, bx, H - 82, bw, 28, radius=6)
-    c.setStrokeColor(GLD2)
-    c.setLineWidth(0.6)
-    c.setStrokeAlpha(0.55)
-    c.roundRect(bx, H - 82, bw, 28, 6, fill=0, stroke=1)
-    c.setStrokeAlpha(1.0)
     _t(c, W/2, H - 72, title_text, FNS, title_fs, GLD2, "center")
     _t(c, W/2, H - 92, "〜  Personal Fortune Reading  〜", FN, 9, SLV, "center")
     _diamond_divider(c, H - 105)
@@ -725,7 +664,6 @@ def _page_cover(c, data):
     box_h = 68
     box_y = box_top - box_h
     _double_border(c, CX1 + 18, box_y, CW - 36, box_h, bg=PRP2, gap=5)
-    _gold_gradient_fill(c, CX1 + 18, box_y, CW - 36, box_h, radius=6)
     _t(c, W/2, box_y + box_h - 22,
        f"生年月日：{data['birth']}　血液型：{data['blood']['type']}型",
        FN, 11, WHT, "center")
