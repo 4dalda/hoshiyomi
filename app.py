@@ -3,6 +3,11 @@ import os
 import sys
 import uuid
 from datetime import date, datetime, timedelta
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 from flask import Flask, request, send_file, render_template, jsonify, redirect
 from io import BytesIO
 
