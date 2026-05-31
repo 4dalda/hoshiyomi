@@ -39,7 +39,9 @@ def _setup_fonts():
     global _FONT_DONE
     if _FONT_DONE:
         return
+    _DIR = os.path.join(os.path.dirname(__file__), "fonts")
     for p in [
+        os.path.join(_DIR, "ipag.ttf"),
         "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",
         "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",
     ]:
@@ -47,6 +49,8 @@ def _setup_fonts():
             pdfmetrics.registerFont(TTFont(FN, p))
             break
     for p in [
+        os.path.join(_DIR, "ipagp.ttf"),
+        os.path.join(_DIR, "ipag.ttf"),
         "/usr/share/fonts/opentype/ipafont-gothic/ipagp.ttf",
         "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",
     ]:
@@ -55,6 +59,7 @@ def _setup_fonts():
             break
     # IPAex Mincho — Japanese serif, traditional fortune-telling feel
     for p in [
+        os.path.join(_DIR, "ipaexm.ttf"),
         "/usr/share/fonts/opentype/ipaexfont-mincho/ipaexm.ttf",
         "/usr/share/fonts/truetype/fonts-japanese-mincho.ttf",
     ]:
@@ -62,9 +67,10 @@ def _setup_fonts():
             pdfmetrics.registerFont(TTFont(FNS, p))
             break
     else:
-        pdfmetrics.registerFont(TTFont(FNS, "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf"))
+        pdfmetrics.registerFont(TTFont(FNS, os.path.join(_DIR, "ipag.ttf")))
     # FreeSerif — Latin glyphs for decorative ASCII title text
     for p in [
+        os.path.join(_DIR, "FreeSerif.ttf"),
         "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
     ]:
@@ -72,7 +78,7 @@ def _setup_fonts():
             pdfmetrics.registerFont(TTFont(FNSL, p))
             break
     else:
-        pdfmetrics.registerFont(TTFont(FNSL, "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf"))
+        pdfmetrics.registerFont(TTFont(FNSL, os.path.join(_DIR, "ipag.ttf")))
     _FONT_DONE = True
 
 # ─── Color palette ─────────────────────────────────────────────────────────
