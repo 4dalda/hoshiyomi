@@ -178,7 +178,7 @@ def make_video(series: str, fmt: str = "long"):
             "-filter_complex", filter_complex,
             "-map", f"[{prev}]",
             "-t", str(total_audio_sec),
-            "-c:v", "libx264", "-preset", "fast", "-crf", "18",
+            "-c:v", "libx264", "-preset", "fast", "-crf", "28",
             "-pix_fmt", "yuv420p",
             str(slideshow_path)
         ]
