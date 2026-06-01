@@ -106,7 +106,7 @@ def make_video(series: str, fmt: str = "long"):
     # Shortsは30秒、longは1時間
     import math
     if fmt == "shorts":
-        total_audio_sec = 30
+        total_audio_sec = 28
         audio_files = [audio_files[0]]  # 最初の1曲だけ使用
     else:
         print("\n⏱  音声の長さを確認中...")
