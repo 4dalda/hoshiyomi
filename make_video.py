@@ -103,16 +103,19 @@ def make_video(series: str, fmt: str = "long"):
 
     print(f"   音楽: {len(audio_files)}曲 / 画像: {len(image_files)}枚")
 
-    # 音声の合計時間を計算し、1時間になるようにループ回数を決定
-    print("\n⏱  音声の長さを確認中...")
-    single_loop_sec = sum(get_audio_duration(f) for f in audio_files)
-    print(f"   1ループ: {single_loop_sec/60:.1f}分")
-
+    # Shortsは30秒、longは1時間
     import math
-    loop_count = math.ceil(TARGET_DURATION_SEC / single_loop_sec)
-    total_audio_sec = TARGET_DURATION_SEC
-    audio_files = list(audio_files) * loop_count  # 曲をループ分繰り返す
-    print(f"   {loop_count}回ループ → 合計約{total_audio_sec/60:.0f}分")
+    if fmt == "shorts":
+        total_audio_sec = 30
+        audio_files = [audio_files[0]]  # 最初の1曲だけ使用
+    else:
+        print("\n⏱  音声の長さを確認中...")
+        single_loop_sec = sum(get_audio_duration(f) for f in audio_files)
+        print(f"   1ループ: {single_loop_sec/60:.1f}分")
+        loop_count = math.ceil(TARGET_DURATION_SEC / single_loop_sec)
+        total_audio_sec = TARGET_DURATION_SEC
+        audio_files = list(audio_files) * loop_count
+        print(f"   {loop_count}回ループ → 合計約{total_audio_sec/60:.0f}分")
 
     # 出力先
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
