@@ -21,6 +21,12 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2MB
 import stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
 
+try:
+    _acct = stripe.Account.retrieve()
+    print(f"[Stripe] charges_enabled={_acct.charges_enabled} payouts_enabled={_acct.payouts_enabled}", flush=True)
+except Exception as _e:
+    print(f"[Stripe] account check failed: {_e}", flush=True)
+
 PRICE_JPY = 500
 _pending_orders: dict = {}
 
