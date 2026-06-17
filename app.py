@@ -110,7 +110,10 @@ def checkout():
         )
     except stripe.error.StripeError as e:
         app.logger.exception("Stripe session creation failed")
-        return jsonify({"error": f"決済エラー: {str(e.user_message or e)}"}), 500
+        msg = str(e.user_message or e)
+        if "cannot currently make live charges" in msg:
+            msg = "現在、決済システムの審査中です。まもなく利用可能になります。しばらくお待ちください。"
+        return jsonify({"error": f"決済エラー: {msg}"}), 500
 
     return jsonify({"checkout_url": session.url})
 
