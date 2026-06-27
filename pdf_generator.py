@@ -14,16 +14,16 @@ _BASE   = os.path.dirname(os.path.abspath(__file__))
 IMG_DIR = os.path.join(_BASE, "static", "images")
 
 TYPE_IMGS = {
-     1: "01SD炎の龍.png",    2: "02SD深海の人魚.png",  3: "03SD雷の天使.png",
-     4: "04SD森の精霊.png",   5: "05SD月の魔女.png",    6: "06SD太陽の勇者.png",
-     7: "07SD山の巨人.png",   8: "08SD嵐の鷲.png",     9: "09SD花の女神.png",
-    10: "10SD氷の龍.png",   11: "11SD大地の魔神.png", 12: "12SD星の賢者.png",
+     1: "01炎の龍_jewelry.png",    2: "02深海の人魚_jewelry.png",  3: "03雷の天使_jewelry.png",
+     4: "04森の精霊_jewelry.png",   5: "05月の魔女_jewelry.png",    6: "06太陽の勇者_jewelry.png",
+     7: "07山の巨人_jewelry.png",   8: "08嵐の鷲_jewelry.png",     9: "09花の女神_jewelry.png",
+    10: "10氷の龍_jewelry.png",   11: "11大地の魔神_jewelry.png", 12: "12星の賢者_jewelry.png",
 }
 NAV_IMGS = {
-    "叢雲":   "叢雲SD.png",
-    "ノヴァ":  "ノヴァSD.png",
-    "フレイヤ": "フレイアSD.png",
-    "グレイス": "グレイスSD.png",
+    "叢雲":   "叢雲_jewelry_P1.png",
+    "ノヴァ":  "ノヴァ_jewelry_P1.png",
+    "フレイヤ": "フレイヤ_jewelry_P1.png",
+    "グレイス": "グレイス_jewelry_P1.png",
 }
 def _type_img_path(tid): return os.path.join(IMG_DIR, TYPE_IMGS.get(tid, ""))
 def _nav_img_path(nav):  return os.path.join(IMG_DIR, NAV_IMGS.get(nav, ""))
