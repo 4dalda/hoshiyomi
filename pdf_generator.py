@@ -799,11 +799,21 @@ def _page_four_axis(c, data):
 def _page_fortune(c, data):
     _page_base(c, seed=99)
     tid = data["type_id"]
-    _page_header(c, "星詠みChronicle", "◆  今 月 の 運 勢  ◆", data["month_str"])
+    period = data.get("period", "monthly")
+    if period == "hanki2":
+        fortune_header = "◆  下 半 期 の 運 勢  ◆"
+        sub_text = f"◆  {data['name']}様の2026年下半期の星の流れ"
+    elif period == "hanki1":
+        fortune_header = "◆  上 半 期 の 運 勢  ◆"
+        sub_text = f"◆  {data['name']}様の2026年上半期の星の流れ"
+    elif period == "yearly":
+        fortune_header = "◆  年 間 の 運 勢  ◆"
+        sub_text = f"◆  {data['name']}様の{data['month_str']}の星の流れ"
+    else:
+        fortune_header = "◆  今 月 の 運 勢  ◆"
+        sub_text = f"◆  {data['name']}様の今月の星の流れ"
+    _page_header(c, "星詠みChronicle", fortune_header, data["month_str"])
     _page_footer(c, 3, 5)
-
-    # Sub-title
-    sub_text = f"◆  {data['name']}様の今月の星の流れ"
     sub_fs = _afs(sub_text, FN, 11, 8, CW)
     _t(c, CX1, CY2 - 14, sub_text, FN, sub_fs, GLD)
     _diamond_divider(c, CY2 - 28)
@@ -881,7 +891,7 @@ def _page_fortune(c, data):
 def _page_nav_lucky(c, data):
     _page_base(c, seed=55)
     nav     = data["navigator"]
-    nav_msg = get_navigator_message(nav, data["type_id"], data["name"])
+    nav_msg = get_navigator_message(nav, data["type_id"], data["name"], data.get("period", "monthly"))
     td      = data["type"]
     tid     = data["type_id"]
 

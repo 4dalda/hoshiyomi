@@ -50,6 +50,7 @@ def _validate_form(data: dict):
         blood     = str(data["blood"]).upper()
         navigator = str(data["navigator"])
         name      = str(data["name"]).strip() or "ゲスト"
+        period    = str(data.get("period", "monthly"))
     except (ValueError, TypeError) as e:
         return None, str(e)
 
@@ -60,7 +61,9 @@ def _validate_form(data: dict):
         return None, "血液型が不正です"
     if navigator not in ("叢雲", "ノヴァ", "フレイヤ", "グレイス"):
         return None, "ニャビゲーターが不正です"
-    return (year, month, day, blood, navigator, name), None
+    if period not in ("monthly", "hanki1", "hanki2", "yearly"):
+        period = "monthly"
+    return (year, month, day, blood, navigator, name, period), None
 
 
 @app.route("/")
@@ -77,13 +80,13 @@ def checkout():
     fields, err = _validate_form(data)
     if err:
         return jsonify({"error": err}), 400
-    year, month, day, blood, navigator, name = fields
+    year, month, day, blood, navigator, name, period = fields
 
     _cleanup_orders()
     order_id = str(uuid.uuid4())
     _pending_orders[order_id] = {
         "year": year, "month": month, "day": day,
-        "blood": blood, "navigator": navigator, "name": name,
+        "blood": blood, "navigator": navigator, "name": name, "period": period,
         "expires": datetime.utcnow() + timedelta(hours=1),
         "verified": False,
     }
@@ -154,6 +157,7 @@ def download():
         fortune_data = calculate_all(
             order["year"], order["month"], order["day"],
             order["blood"], order["navigator"], order["name"],
+            order.get("period", "monthly"),
         )
         pdf_bytes = generate_pdf(fortune_data)
     except Exception:
@@ -180,10 +184,10 @@ def generate():
     fields, err = _validate_form(data)
     if err:
         return jsonify({"error": err}), 400
-    year, month, day, blood, navigator, name = fields
+    year, month, day, blood, navigator, name, period = fields
 
     try:
-        fortune_data = calculate_all(year, month, day, blood, navigator, name)
+        fortune_data = calculate_all(year, month, day, blood, navigator, name, period)
         pdf_bytes    = generate_pdf(fortune_data)
     except Exception as e:
         app.logger.exception("PDF generation failed")

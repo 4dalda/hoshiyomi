@@ -100,7 +100,7 @@ def calculate_fortune_scores(type_id: int, year: int, month: int, day: int) -> d
     return result
 
 
-def calculate_all(year: int, month: int, day: int, blood: str, navigator: str, name: str) -> dict:
+def calculate_all(year: int, month: int, day: int, blood: str, navigator: str, name: str, period: str = "monthly") -> dict:
     zodiac   = get_zodiac(month, day)
     chinese  = get_chinese_zodiac(year)
     lp       = get_life_path(year, month, day)
@@ -110,13 +110,21 @@ def calculate_all(year: int, month: int, day: int, blood: str, navigator: str, n
     scores   = calculate_fortune_scores(type_id, year, month, day)
 
     today = date.today()
-    month_str = f"{today.year}年{today.month}月"
+    if period == "hanki2":
+        month_str = f"{today.year}年 下半期"
+    elif period == "hanki1":
+        month_str = f"{today.year}年 上半期"
+    elif period == "yearly":
+        month_str = f"{today.year}年 年間"
+    else:
+        month_str = f"{today.year}年{today.month}月"
 
     return {
         "name":       name,
         "birth":      f"{year}年{month}月{day}日",
         "navigator":  navigator,
         "month_str":  month_str,
+        "period":     period,
         "zodiac":     zodiac,
         "chinese":    chinese,
         "life_path":  lp,

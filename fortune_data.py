@@ -324,7 +324,7 @@ TYPES = {
 }
 
 # ── ナビゲーターメッセージ ───────────────────────────────────────────
-def get_navigator_message(navigator: str, type_id: int, name: str) -> dict:
+def get_navigator_message(navigator: str, type_id: int, name: str, period: str = "monthly") -> dict:
     type_name = TYPES[type_id]["name"]
     messages = {
         "叢雲": {
@@ -402,8 +402,23 @@ def get_navigator_message(navigator: str, type_id: int, name: str) -> dict:
     }
 
     nav_data = messages.get(navigator, messages["叢雲"])
+    period_labels = {
+        "hanki2": "下半期",
+        "hanki1": "上半期",
+        "yearly": "今年",
+    }
+    if period in period_labels and navigator == "叢雲":
+        header = f"{period_labels[period]}、叢雲よりひとこと"
+    elif period in period_labels and navigator == "ノヴァ":
+        header = f"ノヴァからの{period_labels[period]}マジ本気メッセージ！"
+    elif period in period_labels and navigator == "フレイヤ":
+        header = f"フレイヤの{period_labels[period]}ゴロゴロメッセージ……"
+    elif period in period_labels and navigator == "グレイス":
+        header = f"グレイスより、{period_labels[period]}のこと一応ね"
+    else:
+        header = nav_data["header"]
     return {
         "intro":   nav_data["intro"],
-        "header":  nav_data["header"],
+        "header":  header,
         "message": nav_data["messages"].get(type_id, ""),
     }
