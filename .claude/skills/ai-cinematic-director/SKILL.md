@@ -1,4 +1,9 @@
-# 動画演出スキル — CapCut・Premiere向け
+---
+name: ai-cinematic-director
+description: 星詠みChronicleのYouTube Shorts・ヒーリングBGM動画について、映像演出を設計し、CapCutやPremiere向けの指示文を作成する。
+---
+
+# AI Cinematic Director — CapCut・Premiere向け
 
 ## 役割
 YouTube Shorts・ヒーリングBGM動画の演出設計を担当する。
