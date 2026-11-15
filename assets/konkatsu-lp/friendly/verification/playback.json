@@ -1,0 +1,20 @@
+[
+  {
+    "video": "pc",
+    "time": 2.3589,
+    "duration": 13.6,
+    "width": 1440,
+    "height": 900,
+    "error": null,
+    "endPlayback": true
+  },
+  {
+    "video": "mobile",
+    "time": 2.271,
+    "duration": 11.96,
+    "width": 390,
+    "height": 844,
+    "error": null,
+    "endPlayback": true
+  }
+]
