@@ -10,7 +10,7 @@
   --bg:     #08080f;
   --bg2:    #0f0f1a;
   --fg:     #f0ece4;
-  --fg-sub: #9a9080;
+  --fg-sub: #b0a898;
   --gold:   #c8a84b;
   --gold2:  #e8c870;
   --navy:   #0d1a3a;
@@ -22,71 +22,103 @@ body{background:var(--bg);color:var(--fg);font-family:'Noto Sans JP',sans-serif;
 
 /* ========== NAV ========== */
 nav{
-  position:fixed;top:0;left:0;right:0;z-index:100;
+  position:fixed;top:0;left:0;right:0;z-index:200;
   background:rgba(8,8,15,0.88);backdrop-filter:blur(16px);
   border-bottom:1px solid var(--line);
   padding:16px 48px;
   display:flex;justify-content:space-between;align-items:center;
 }
-.nav-logo{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:200;letter-spacing:0.4em;color:var(--gold)}
+.nav-logo{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:200;letter-spacing:0.4em;color:var(--gold)}
 .nav-links{display:flex;gap:32px;list-style:none}
-.nav-links a{font-size:11px;letter-spacing:0.2em;color:var(--fg-sub);text-decoration:none;transition:color 0.3s}
+.nav-links a{font-size:13px;letter-spacing:0.2em;color:var(--fg-sub);text-decoration:none;transition:color 0.3s}
 .nav-links a:hover{color:var(--gold)}
-.nav-cta{font-size:11px;font-weight:300;padding:10px 28px;border:1px solid var(--gold);color:var(--gold);text-decoration:none;letter-spacing:0.2em;transition:all 0.4s}
+.nav-cta{font-size:12px;font-weight:300;padding:10px 28px;border:1px solid var(--gold);color:var(--gold);text-decoration:none;letter-spacing:0.2em;transition:all 0.4s}
 .nav-cta:hover{background:var(--gold);color:#08080f}
 
-/* ========== HERO ========== */
+/* ========== HERO — CINEMATIC PARALLAX ========== */
 .hero{
-  position:relative;min-height:100svh;
-  display:flex;align-items:center;overflow:hidden;
+  position:relative;
+  height:160svh; /* 長めに確保して奥行き変化の時間を作る */
+  overflow:hidden;
 }
-.hero-bg{
-  position:absolute;inset:0;
-  background-image:url('bg/bg_luxury.webp');
-  background-size:cover;background-position:center right;
-  transform:scale(1.04);
-  animation:bgzoom 12s ease-out forwards;
+.hero-sticky{
+  position:sticky;top:0;
+  height:100svh;overflow:hidden;
+  display:flex;align-items:center;
 }
-@keyframes bgzoom{from{transform:scale(1.04)}to{transform:scale(1)}}
-.hero-overlay{
-  position:absolute;inset:0;
-  background:linear-gradient(100deg,rgba(8,8,15,0.88) 40%,rgba(8,8,15,0.3) 75%,transparent 100%);
-}
-.hero-person{
-  position:absolute;right:4%;bottom:0;
-  height:88%;object-fit:contain;
-  opacity:0;animation:personin 1.2s 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
-  pointer-events:none;
-}
-@keyframes personin{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
 
-.hero-content{
-  position:relative;z-index:2;
-  padding:120px 80px 80px;max-width:680px;
+/* Layer 1: 背景 (0.2倍速) */
+.layer-bg{
+  position:absolute;inset:-20%;
+  background-image:url('bg/bg_luxury.webp');
+  background-size:cover;background-position:center;
+  will-change:transform;
+}
+/* Layer 2: 光・装飾オーバーレイ (0.4倍速) */
+.layer-light{
+  position:absolute;inset:0;
+  background:linear-gradient(100deg,rgba(8,8,15,0.92) 38%,rgba(8,8,15,0.5) 68%,rgba(8,8,15,0.15) 100%);
+  will-change:transform;
+}
+.layer-light::after{
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:40%;
+  background:linear-gradient(to top,var(--bg),transparent);
+}
+/* 金の光の線 */
+.gold-ray{
+  position:absolute;top:30%;right:28%;
+  width:1px;height:200px;
+  background:linear-gradient(180deg,transparent,rgba(200,168,75,0.4),transparent);
+  transform:rotate(20deg);
+  will-change:transform;
+}
+.gold-ray2{
+  position:absolute;top:20%;right:36%;
+  width:1px;height:120px;
+  background:linear-gradient(180deg,transparent,rgba(200,168,75,0.2),transparent);
+  transform:rotate(-10deg);
+}
+
+/* Layer 3: 人物 (0.7倍速) */
+.layer-person{
+  position:absolute;right:3%;bottom:0;
+  height:92%;object-fit:contain;
+  pointer-events:none;
+  opacity:0;animation:personin 1.4s 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
+  will-change:transform;
+}
+@keyframes personin{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}
+
+/* Layer 4: テキスト (通常速度 = stickyで固定) */
+.layer-text{
+  position:relative;z-index:10;
+  padding:0 80px;max-width:680px;
+  will-change:transform;
 }
 .hero-eyebrow{
-  font-size:10px;letter-spacing:0.6em;color:var(--gold);text-transform:uppercase;
+  font-size:11px;letter-spacing:0.6em;color:var(--gold);text-transform:uppercase;
   margin-bottom:28px;opacity:0;animation:fi 1s 0.3s forwards;
-  display:flex;align-items:center;gap:12px;
+  display:flex;align-items:center;gap:14px;
 }
-.hero-eyebrow::before{content:'';width:24px;height:1px;background:var(--gold)}
+.hero-eyebrow::before{content:'';width:28px;height:1px;background:var(--gold)}
 .hero-h1{
   font-family:'Noto Serif JP',serif;
-  font-size:clamp(32px,4.5vw,58px);font-weight:200;
+  font-size:clamp(36px,4.8vw,64px);font-weight:200;
   color:var(--fg);line-height:1.75;letter-spacing:0.06em;
   margin-bottom:12px;text-wrap:balance;
   opacity:0;animation:fi 1s 0.6s forwards;
 }
 .hero-h1 em{font-style:normal;color:var(--gold)}
-.hero-rule{width:40px;height:1px;background:var(--gold);margin:24px 0;opacity:0;animation:fi 1s 0.9s forwards}
+.hero-rule{width:44px;height:1px;background:var(--gold);margin:28px 0;opacity:0;animation:fi 1s 0.9s forwards}
 .hero-sub{
-  font-size:14px;color:var(--fg-sub);line-height:2.4;letter-spacing:0.06em;
+  font-size:17px;color:var(--fg-sub);line-height:2.4;letter-spacing:0.06em;
   margin-bottom:48px;opacity:0;animation:fi 1s 1s forwards;
 }
 .hero-btns{display:flex;gap:16px;flex-wrap:wrap;opacity:0;animation:fi 1s 1.2s forwards}
 .btn-primary{
-  padding:16px 48px;background:var(--gold);color:#08080f;
-  font-family:'Noto Serif JP',serif;font-size:13px;font-weight:300;letter-spacing:0.3em;
+  padding:18px 52px;background:var(--gold);color:#08080f;
+  font-family:'Noto Serif JP',serif;font-size:15px;font-weight:300;letter-spacing:0.3em;
   text-decoration:none;transition:all 0.4s;
   display:inline-flex;align-items:center;gap:10px;
 }
@@ -94,100 +126,115 @@ nav{
 .btn-primary:hover{background:var(--gold2)}
 .btn-primary:hover::after{transform:translateX(4px)}
 .btn-secondary{
-  padding:16px 36px;border:1px solid rgba(200,168,75,0.4);color:var(--fg-sub);
-  font-size:12px;letter-spacing:0.2em;text-decoration:none;transition:all 0.4s;
+  padding:18px 36px;border:1px solid rgba(200,168,75,0.4);color:var(--fg-sub);
+  font-size:14px;letter-spacing:0.2em;text-decoration:none;transition:all 0.4s;
 }
 .btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
 .hero-badges{
-  display:flex;gap:20px;margin-top:40px;flex-wrap:wrap;
+  display:flex;gap:24px;margin-top:40px;flex-wrap:wrap;
   opacity:0;animation:fi 1s 1.4s forwards;
 }
-.badge{font-size:11px;color:var(--fg-sub);display:flex;align-items:center;gap:6px;letter-spacing:0.08em}
-.badge::before{content:'✓';color:var(--gold);font-size:12px}
+.badge{font-size:13px;color:var(--fg-sub);display:flex;align-items:center;gap:7px;letter-spacing:0.08em}
+.badge::before{content:'✓';color:var(--gold);font-size:13px}
 
-/* ========== SCROLL INDICATOR ========== */
+/* スクロールインジケーター */
 .scroll-ind{
-  position:absolute;bottom:36px;left:80px;z-index:2;
+  position:absolute;bottom:36px;left:80px;z-index:10;
   display:flex;align-items:center;gap:12px;
   opacity:0;animation:fi 1s 1.8s forwards;
 }
-.scroll-line{width:40px;height:1px;background:var(--gold);opacity:0.5}
-.scroll-txt{font-size:9px;letter-spacing:0.4em;color:var(--fg-sub)}
+.scroll-line{width:44px;height:1px;background:var(--gold);opacity:0.5}
+.scroll-txt{font-size:10px;letter-spacing:0.4em;color:var(--fg-sub)}
 
-/* ========== PAIN SECTION ========== */
-.section{padding:100px 80px}
+/* ========== SECTIONS ========== */
+.section{padding:108px 80px}
 .section-inner{max-width:960px;margin:0 auto}
-.ey{font-size:9px;letter-spacing:0.6em;color:var(--gold);text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:12px}
-.ey::before{content:'';width:24px;height:1px;background:var(--gold)}
-.sec-h{font-family:'Noto Serif JP',serif;font-size:clamp(22px,3vw,38px);font-weight:200;color:var(--fg);letter-spacing:0.08em;line-height:1.9;margin-bottom:16px;text-wrap:balance}
+.ey{font-size:11px;letter-spacing:0.6em;color:var(--gold);text-transform:uppercase;margin-bottom:22px;display:flex;align-items:center;gap:14px}
+.ey::before{content:'';width:28px;height:1px;background:var(--gold)}
+.sec-h{font-family:'Noto Serif JP',serif;font-size:clamp(26px,3.2vw,42px);font-weight:200;color:var(--fg);letter-spacing:0.08em;line-height:1.9;margin-bottom:18px;text-wrap:balance}
 .sec-h b{color:var(--gold);font-weight:200}
-.sec-rule{width:40px;height:1px;background:var(--gold);opacity:0.5;margin-bottom:56px}
+.sec-rule{width:44px;height:1px;background:var(--gold);opacity:0.5;margin-bottom:60px}
 
-.pain-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:48px}
-.pain-card{background:var(--bg);padding:40px 36px;position:relative;overflow:hidden;transition:background 0.4s}
-.pain-card:hover{background:var(--bg2)}
+/* Pain */
+.pain-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:52px}
+.pain-card{
+  background:var(--bg);padding:44px 38px;position:relative;overflow:hidden;
+  transition:background 0.4s, transform 0.4s;
+}
+.pain-card:hover{background:var(--bg2);transform:translateY(-5px)}
 .pain-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity 0.4s}
 .pain-card:hover::after{opacity:1}
-.pain-num{font-family:'Noto Serif JP',serif;font-size:44px;font-weight:200;color:rgba(200,168,75,0.12);margin-bottom:16px}
-.pain-txt{font-size:14px;color:var(--fg-sub);line-height:2.3;letter-spacing:0.04em}
+.pain-num{font-family:'Noto Serif JP',serif;font-size:48px;font-weight:200;color:rgba(200,168,75,0.12);margin-bottom:18px}
+.pain-txt{font-size:16px;color:var(--fg-sub);line-height:2.3;letter-spacing:0.04em}
 
-.resolve-box{border:1px solid var(--line);padding:48px 56px;text-align:center;position:relative}
-.resolve-box::before,.resolve-box::after{content:'◇';position:absolute;color:var(--gold);font-size:10px;left:50%;transform:translateX(-50%)}
-.resolve-box::before{top:-6px}.resolve-box::after{bottom:-6px}
-.resolve-txt{font-family:'Noto Serif JP',serif;font-size:clamp(15px,2vw,20px);font-weight:200;color:var(--fg);letter-spacing:0.1em;line-height:2}
+.resolve-box{border:1px solid var(--line);padding:52px 60px;text-align:center;position:relative}
+.resolve-box::before,.resolve-box::after{content:'◇';position:absolute;color:var(--gold);font-size:11px;left:50%;transform:translateX(-50%)}
+.resolve-box::before{top:-7px}.resolve-box::after{bottom:-7px}
+.resolve-txt{font-family:'Noto Serif JP',serif;font-size:clamp(18px,2.2vw,24px);font-weight:200;color:var(--fg);letter-spacing:0.1em;line-height:2}
 .resolve-txt em{font-style:normal;color:var(--gold)}
 
-/* ========== STRENGTH ========== */
+/* Strength */
 .str-sec{background:var(--bg2)}
 .str-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
-.str-card{background:var(--bg2);padding:44px 40px;position:relative;transition:background 0.4s}
-.str-card:hover{background:var(--bg)}
-.str-num{font-family:'Noto Serif JP',serif;font-size:44px;font-weight:200;color:rgba(200,168,75,0.1);position:absolute;top:28px;right:28px}
-.str-title{font-family:'Noto Serif JP',serif;font-size:16px;font-weight:300;color:var(--gold);letter-spacing:0.1em;margin-bottom:16px;line-height:1.6}
-.str-body{font-size:13px;color:var(--fg-sub);line-height:2.4;letter-spacing:0.03em}
+.str-card{
+  background:var(--bg2);padding:48px 44px;position:relative;
+  transition:background 0.4s, transform 0.4s;
+}
+.str-card:hover{background:var(--bg);transform:translateY(-5px)}
+.str-num{font-family:'Noto Serif JP',serif;font-size:48px;font-weight:200;color:rgba(200,168,75,0.1);position:absolute;top:28px;right:28px}
+.str-title{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:300;color:var(--gold);letter-spacing:0.1em;margin-bottom:18px;line-height:1.7}
+.str-body{font-size:15px;color:var(--fg-sub);line-height:2.5;letter-spacing:0.03em}
 
-/* ========== CTA ========== */
+/* CTA */
 .cta-sec{
-  padding:120px 80px;text-align:center;position:relative;overflow:hidden;
+  padding:128px 80px;text-align:center;position:relative;overflow:hidden;
   background:var(--bg);
 }
 .cta-sec::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-.cta-h{font-family:'Noto Serif JP',serif;font-size:clamp(22px,3vw,38px);font-weight:200;color:var(--fg);letter-spacing:0.08em;line-height:2;margin-bottom:12px;text-wrap:balance}
+.cta-h{font-family:'Noto Serif JP',serif;font-size:clamp(26px,3.2vw,42px);font-weight:200;color:var(--fg);letter-spacing:0.08em;line-height:2;margin-bottom:14px;text-wrap:balance}
 .cta-h em{font-style:normal;color:var(--gold)}
-.cta-rule{width:40px;height:1px;background:var(--gold);opacity:0.5;margin:24px auto 36px}
-.cta-sub{font-size:12px;color:var(--fg-sub);letter-spacing:0.1em;line-height:2.5;margin-bottom:52px}
-.cta-free{margin-top:20px;font-size:10px;color:var(--fg-sub);letter-spacing:0.3em}
+.cta-rule{width:44px;height:1px;background:var(--gold);opacity:0.5;margin:28px auto 40px}
+.cta-sub{font-size:16px;color:var(--fg-sub);letter-spacing:0.08em;line-height:2.6;margin-bottom:56px}
+.cta-free{margin-top:24px;font-size:12px;color:var(--fg-sub);letter-spacing:0.3em}
 
-/* ========== FOOTER ========== */
+/* Footer */
 footer{
   background:#030308;border-top:1px solid var(--line);
   padding:40px 80px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
 }
-.f-logo{font-family:'Noto Serif JP',serif;font-size:12px;font-weight:200;letter-spacing:0.4em;color:var(--gold)}
-.f-copy{font-size:10px;letter-spacing:0.15em;color:var(--fg-sub)}
+.f-logo{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:200;letter-spacing:0.4em;color:var(--gold)}
+.f-copy{font-size:11px;letter-spacing:0.15em;color:var(--fg-sub)}
 
 /* ========== SCROLL ANIMATION ========== */
-.reveal{opacity:0;transform:translateY(20px);transition:opacity 0.9s cubic-bezier(0.16,1,0.3,1),transform 0.9s cubic-bezier(0.16,1,0.3,1)}
+.reveal{opacity:0;transform:translateY(32px);transition:opacity 0.9s cubic-bezier(0.16,1,0.3,1),transform 0.9s cubic-bezier(0.16,1,0.3,1)}
 .reveal.d1{transition-delay:.1s}.reveal.d2{transition-delay:.2s}.reveal.d3{transition-delay:.3s}.reveal.d4{transition-delay:.4s}
 .reveal.in{opacity:1;transform:none}
 
-@keyframes fi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+@keyframes fi{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* reduced-motion */
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+  .layer-person{opacity:1}
+}
 
 /* ========== RESPONSIVE ========== */
 @media(max-width:768px){
   nav{padding:14px 20px}
   .nav-links{display:none}
-  .hero-content{padding:100px 24px 80px;max-width:100%}
-  .hero-h1{font-size:clamp(28px,8vw,40px)}
-  .hero-person{height:60%;right:-4%}
+  .layer-text{padding:0 24px;max-width:100%}
+  .hero-h1{font-size:clamp(30px,9vw,44px)}
+  .hero-sub{font-size:15px}
+  .layer-person{height:65%;right:-2%}
   .scroll-ind{left:24px}
-  .section{padding:72px 20px}
+  .section{padding:80px 20px}
   .pain-grid{grid-template-columns:1fr}
   .str-grid{grid-template-columns:1fr}
-  .resolve-box{padding:32px 24px}
-  .cta-sec{padding:80px 24px}
+  .resolve-box{padding:36px 24px}
+  .cta-sec{padding:88px 24px}
   footer{padding:32px 20px}
+  .pain-card:hover,.str-card:hover{transform:none}
 }
 </style>
 </head>
@@ -203,29 +250,43 @@ footer{
   <a href="#contact" class="nav-cta">無料相談を申し込む</a>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-overlay"></div>
-  <img src="person/person_luxury.webp" alt="" class="hero-person" aria-hidden="true">
-  <div class="hero-content">
-    <div class="hero-eyebrow">Premium Marriage Support for Men</div>
-    <h1 class="hero-h1">人生が変わる<br><em>占い師</em>が、<br>あなたの婚活を<br>変える。</h1>
-    <div class="hero-rule"></div>
-    <p class="hero-sub">女性相談のプロが、女性目線で<br>「選ばれる男性」へと導きます。</p>
-    <div class="hero-btns">
-      <a href="#contact" class="btn-primary">無料相談を申し込む</a>
-      <a href="#service" class="btn-secondary">サービスを見る</a>
+<!-- HERO — Cinematic 4-Layer Parallax -->
+<section class="hero" id="hero">
+  <div class="hero-sticky">
+    <!-- Layer 1: 背景 (0.2倍速) -->
+    <div class="layer-bg" id="layerBg"></div>
+
+    <!-- Layer 2: 光・装飾 (0.4倍速) -->
+    <div class="layer-light" id="layerLight">
+      <div class="gold-ray"></div>
+      <div class="gold-ray2"></div>
     </div>
-    <div class="hero-badges">
-      <span class="badge">初回60分無料</span>
-      <span class="badge">秘密厳守</span>
-      <span class="badge">女性会員在籍中</span>
+
+    <!-- Layer 3: 人物 (0.7倍速) -->
+    <img src="person/person_luxury.webp" alt="" class="layer-person" id="layerPerson" aria-hidden="true">
+
+    <!-- Layer 4: テキスト (1.0倍速 = stickyで固定) -->
+    <div class="layer-text" id="layerText">
+      <div class="hero-eyebrow">Premium Marriage Support for Men</div>
+      <h1 class="hero-h1">人生が変わる<br><em>占い師</em>が、<br>あなたの婚活を<br>変える。</h1>
+      <div class="hero-rule"></div>
+      <p class="hero-sub">女性相談のプロが、女性目線で<br>「選ばれる男性」へと導きます。</p>
+      <div class="hero-btns">
+        <a href="#contact" class="btn-primary">無料相談を申し込む</a>
+        <a href="#strength" class="btn-secondary">サービスを見る</a>
+      </div>
+      <div class="hero-badges">
+        <span class="badge">初回60分無料</span>
+        <span class="badge">秘密厳守</span>
+        <span class="badge">女性会員在籍中</span>
+      </div>
     </div>
-  </div>
-  <div class="scroll-ind">
-    <div class="scroll-line"></div>
-    <span class="scroll-txt">SCROLL</span>
+
+    <!-- スクロールインジケーター -->
+    <div class="scroll-ind">
+      <div class="scroll-line"></div>
+      <span class="scroll-txt">SCROLL</span>
+    </div>
   </div>
 </section>
 
@@ -278,6 +339,50 @@ footer{
 </footer>
 
 <script>
+/* ========== CINEMATIC PARALLAX (rAF) ========== */
+const hero     = document.getElementById('hero');
+const layerBg  = document.getElementById('layerBg');
+const layerLt  = document.getElementById('layerLight');
+const layerPs  = document.getElementById('layerPerson');
+const layerTx  = document.getElementById('layerText');
+
+let ticking = false;
+
+function updateParallax() {
+  const rect = hero.getBoundingClientRect();
+  // stickyが始まる瞬間（rect.top<=0）から終わる瞬間（rect.bottom<=100svh）まで
+  const heroH    = hero.offsetHeight;         // 160svh
+  const viewH    = window.innerHeight;        // 100svh
+  const progress = Math.max(0, Math.min(1, -rect.top / (heroH - viewH)));
+
+  // 各レイヤーの移動量を計算（progress=0→1でyがずれていく）
+  const maxShift = viewH * 0.18; // 最大移動距離（svhの18%）
+  const bg  = progress * maxShift * 0.2;  // Layer1: 0.2倍速
+  const lt  = progress * maxShift * 0.4;  // Layer2: 0.4倍速
+  const ps  = progress * maxShift * 0.7;  // Layer3: 0.7倍速
+  // Layer4(テキスト)はstickyで固定→常に0
+
+  layerBg.style.transform  = `translateY(${bg}px)`;
+  layerLt.style.transform  = `translateY(${lt}px)`;
+  layerPs.style.transform  = `translateY(${ps}px)`;
+
+  ticking = false;
+}
+
+function onScroll() {
+  if (!ticking) {
+    requestAnimationFrame(updateParallax);
+    ticking = true;
+  }
+}
+
+// reduced-motionの場合はパラレックスOFF
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  window.addEventListener('scroll', onScroll, { passive: true });
+  updateParallax(); // 初期値セット
+}
+
+/* ========== SCROLL REVEAL (IntersectionObserver) ========== */
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in') });
 }, { threshold: 0.06 });
