@@ -197,6 +197,31 @@ nav{
 .cta-sub{font-size:16px;color:var(--fg-sub);letter-spacing:0.08em;line-height:2.6;margin-bottom:56px}
 .cta-free{margin-top:24px;font-size:12px;color:var(--fg-sub);letter-spacing:0.3em}
 
+/* Profile */
+.profile-wrap{display:flex;gap:60px;align-items:flex-start}
+.profile-img-col{flex:0 0 260px;text-align:center}
+.profile-img-frame{
+  width:220px;height:260px;margin:0 auto 20px;
+  border:1px solid var(--line);overflow:hidden;position:relative;
+}
+.profile-img-frame::after{
+  content:'';position:absolute;inset:0;
+  border:1px solid rgba(200,168,75,0.3);pointer-events:none;
+}
+.profile-img{width:100%;height:100%;object-fit:cover;object-position:center top}
+.profile-name{font-family:'Noto Serif JP',serif;font-size:22px;font-weight:200;color:var(--gold);letter-spacing:0.3em;margin-bottom:6px}
+.profile-title{font-size:12px;color:var(--fg-sub);letter-spacing:0.3em}
+.profile-body-col{flex:1;padding-top:8px}
+.profile-lead{
+  font-family:'Noto Serif JP',serif;font-size:17px;font-weight:200;
+  color:var(--fg);line-height:2;letter-spacing:0.06em;
+  margin-bottom:28px;padding-left:16px;
+  border-left:1px solid var(--gold);
+}
+.profile-txt{font-size:15px;color:var(--fg-sub);line-height:2.5;letter-spacing:0.03em;margin-bottom:16px}
+.profile-tags{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.ptag{font-size:11px;color:var(--gold);border:1px solid rgba(200,168,75,0.35);padding:5px 14px;letter-spacing:0.1em}
+
 /* Footer */
 footer{
   background:#030308;border-top:1px solid var(--line);
@@ -235,6 +260,9 @@ footer{
   .cta-sec{padding:88px 24px}
   footer{padding:32px 20px}
   .pain-card:hover,.str-card:hover{transform:none}
+  .profile-wrap{flex-direction:column;gap:32px}
+  .profile-img-col{flex:none;width:100%}
+  .profile-img-frame{width:180px;height:220px}
 }
 </style>
 </head>
@@ -319,6 +347,37 @@ footer{
       <div class="str-card"><span class="str-num">II</span><div class="str-title">既存の女性会員との<br>出会いの機会</div><p class="str-body">すでに女性会員が在籍する環境。コーチングを受けながら、実際の出会いの機会も同時に進めることができます。</p></div>
       <div class="str-card"><span class="str-num">III</span><div class="str-title">あなた専用の<br>戦略設計</div><p class="str-body">画一的なアドバイスではなく、あなたの個性・強みを活かしたオーダーメイドの婚活プランを設計します。</p></div>
       <div class="str-card"><span class="str-num">IV</span><div class="str-title">LINE通話で<br>気軽に相談できる</div><p class="str-body">堅苦しくない、話しやすい雰囲気でサポート。LINEでいつでも相談できるので、一人で悩まず前進できます。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROFILE -->
+<section class="section" id="profile">
+  <div class="section-inner">
+    <div class="ey reveal">Profile</div>
+    <h2 class="sec-h reveal d1">あなたの相談相手、<br><b>SHiKiについて。</b></h2>
+    <div class="sec-rule reveal d2"></div>
+    <div class="profile-wrap reveal d3">
+      <div class="profile-img-col">
+        <div class="profile-img-frame">
+          <img src="person/shiki_profile.png" alt="SHiKi" class="profile-img">
+        </div>
+        <div class="profile-name-block">
+          <div class="profile-name">SHiKi</div>
+          <div class="profile-title">人生が変わる占い師</div>
+        </div>
+      </div>
+      <div class="profile-body-col">
+        <p class="profile-lead">「占いで人の人生に触れてきたからこそ、<br>女性の本音が見えます。」</p>
+        <p class="profile-txt">長年にわたって女性の恋愛・婚活相談を占いと対話で支えてきました。女性がパートナーに本当に求めているもの、言葉にならない気持ちを深く理解しています。</p>
+        <p class="profile-txt">堅苦しくなく、気さくに話せる雰囲気が持ち味。LINEやInstagramライブを通じて、多くの方が「話してよかった」と感じてくれています。</p>
+        <div class="profile-tags">
+          <span class="ptag">占い師</span>
+          <span class="ptag">婚活アドバイザー</span>
+          <span class="ptag">女性心理の専門家</span>
+          <span class="ptag">天然石アクセサリー作家</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
