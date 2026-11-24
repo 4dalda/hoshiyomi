@@ -1,316 +1,533 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>SHiKi — 人生が変わる占い師の婚活サポート</title>
+<title>SHiKi 婚活サポート — 人生が変わる占い師</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400&family=Noto+Sans+JP:wght@300;400&display=swap">
+
 <style>
+/* ===== TOKENS ===== */
 :root {
-  --bg:     #08080f;
-  --bg2:    #0f0f1a;
-  --fg:     #f0ece4;
-  --fg-sub: #b0a898;
-  --gold:   #c8a84b;
-  --gold2:  #e8c870;
-  --navy:   #0d1a3a;
-  --line:   rgba(200,168,75,0.18);
+  --bg:    #06060f;
+  --bg2:   #0c0c20;
+  --bg3:   #f8f3ec;
+  --navy:  #0d1535;
+  --fg:    #f0ece4;
+  --fg-sub:#b0a898;
+  --fg-dk: #1a1830;
+  --gold:  #c8a84b;
+  --gold2: #e8c870;
+  --coral: #c0624a;
+  --line:  rgba(200,168,75,0.22);
+  --line2: rgba(200,168,75,0.08);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--fg);font-family:'Noto Sans JP',sans-serif;font-weight:300;overflow-x:hidden}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Noto Sans JP',sans-serif;font-weight:300;
+  overflow-x:hidden;
+}
 
-/* ========== NAV ========== */
+/* ===== NAV ===== */
 nav{
   position:fixed;top:0;left:0;right:0;z-index:200;
-  background:rgba(8,8,15,0.88);backdrop-filter:blur(16px);
+  background:rgba(6,6,15,0.92);backdrop-filter:blur(16px);
   border-bottom:1px solid var(--line);
-  padding:16px 48px;
-  display:flex;justify-content:space-between;align-items:center;
+  padding:0 48px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
 }
-.nav-logo{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:200;letter-spacing:0.4em;color:var(--gold)}
-.nav-links{display:flex;gap:32px;list-style:none}
-.nav-links a{font-size:13px;letter-spacing:0.2em;color:var(--fg-sub);text-decoration:none;transition:color 0.3s}
+.nav-logo{
+  display:flex;align-items:center;gap:10px;
+  font-family:'Noto Serif JP',serif;font-size:14px;font-weight:300;
+  color:var(--fg);letter-spacing:0.15em;white-space:nowrap;
+  text-decoration:none;
+}
+.nav-logo-icon{
+  width:28px;height:28px;flex-shrink:0;
+}
+.nav-links{
+  display:flex;gap:28px;list-style:none;
+}
+.nav-links a{
+  font-size:12px;letter-spacing:0.15em;color:var(--fg-sub);
+  text-decoration:none;transition:color 0.3s;white-space:nowrap;
+}
 .nav-links a:hover{color:var(--gold)}
-.nav-cta{font-size:12px;font-weight:300;padding:10px 28px;border:1px solid var(--gold);color:var(--gold);text-decoration:none;letter-spacing:0.2em;transition:all 0.4s}
-.nav-cta:hover{background:var(--gold);color:#08080f}
+.nav-cta{
+  font-size:12px;letter-spacing:0.2em;white-space:nowrap;
+  padding:9px 24px;border:1px solid var(--gold);color:var(--gold);
+  text-decoration:none;transition:all 0.4s;flex-shrink:0;
+}
+.nav-cta:hover{background:var(--gold);color:var(--bg)}
 
-/* ========== HERO — CINEMATIC PARALLAX ========== */
+/* ===== HERO ===== */
 .hero{
-  position:relative;
-  height:160svh; /* 長めに確保して奥行き変化の時間を作る */
-  overflow:hidden;
+  position:relative;height:160svh;overflow:hidden;
 }
 .hero-sticky{
-  position:sticky;top:0;
-  height:100svh;overflow:hidden;
+  position:sticky;top:0;height:100svh;overflow:hidden;
   display:flex;align-items:center;
 }
-
-/* Layer 1: 背景 (0.2倍速) */
 .layer-bg{
-  position:absolute;inset:-20%;
-  background-image:url('bg/bg_luxury.webp');
-  background-size:cover;background-position:center;
+  position:absolute;inset:-15%;
+  background:url('bg/bg_luxury.webp') center/cover no-repeat;
   will-change:transform;
 }
-/* Layer 2: 光・装飾オーバーレイ (0.4倍速) */
-.layer-light{
+.layer-overlay{
   position:absolute;inset:0;
-  background:linear-gradient(100deg,rgba(8,8,15,0.92) 38%,rgba(8,8,15,0.5) 68%,rgba(8,8,15,0.15) 100%);
+  background:linear-gradient(105deg,
+    rgba(6,6,15,0.95) 30%,
+    rgba(6,6,15,0.65) 60%,
+    rgba(6,6,15,0.1) 100%);
   will-change:transform;
 }
-.layer-light::after{
-  content:'';position:absolute;
-  bottom:0;left:0;right:0;height:40%;
+.layer-overlay::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:35%;
   background:linear-gradient(to top,var(--bg),transparent);
 }
-/* 金の光の線 */
+/* ゴールドの光ライン */
 .gold-ray{
-  position:absolute;top:30%;right:28%;
-  width:1px;height:200px;
-  background:linear-gradient(180deg,transparent,rgba(200,168,75,0.4),transparent);
-  transform:rotate(20deg);
-  will-change:transform;
+  position:absolute;
+  background:linear-gradient(180deg,transparent,rgba(200,168,75,0.35),transparent);
+  pointer-events:none;will-change:transform;
 }
-.gold-ray2{
-  position:absolute;top:20%;right:36%;
-  width:1px;height:120px;
-  background:linear-gradient(180deg,transparent,rgba(200,168,75,0.2),transparent);
-  transform:rotate(-10deg);
-}
+.gold-ray-1{top:15%;right:34%;width:1px;height:260px;transform:rotate(18deg)}
+.gold-ray-2{top:10%;right:28%;width:1px;height:160px;transform:rotate(-8deg);opacity:0.5}
+.gold-ray-3{top:40%;right:46%;width:200px;height:1px;opacity:0.25}
 
-/* Layer 3: 人物 (0.7倍速) */
 .layer-person{
-  position:absolute;right:3%;bottom:0;
-  height:92%;object-fit:contain;
-  pointer-events:none;
-  opacity:0;animation:personin 1.4s 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
+  position:absolute;right:2%;bottom:0;
+  height:94%;object-fit:contain;pointer-events:none;
+  opacity:0;animation:personIn 1.4s 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
   will-change:transform;
 }
-@keyframes personin{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}
+@keyframes personIn{
+  from{opacity:0;transform:translateX(28px)}
+  to  {opacity:1;transform:translateX(0)}
+}
 
-/* Layer 4: テキスト (通常速度 = stickyで固定) */
+/* 右上フロートテキスト */
+.hero-float{
+  position:absolute;top:22%;right:52%;
+  writing-mode:horizontal-tb;
+  font-family:'Noto Serif JP',serif;font-size:13px;font-weight:200;
+  color:rgba(240,236,228,0.7);letter-spacing:0.15em;line-height:2;
+  white-space:nowrap;
+  opacity:0;animation:fi 1.2s 1.6s forwards;
+}
+
 .layer-text{
   position:relative;z-index:10;
-  padding:0 80px;max-width:680px;
-  will-change:transform;
+  padding:0 80px;max-width:660px;
 }
 .hero-eyebrow{
-  font-size:11px;letter-spacing:0.6em;color:var(--gold);text-transform:uppercase;
-  margin-bottom:28px;opacity:0;animation:fi 1s 0.3s forwards;
   display:flex;align-items:center;gap:14px;
+  margin-bottom:28px;
+  opacity:0;animation:fi 1s 0.3s forwards;
 }
-.hero-eyebrow::before{content:'';width:28px;height:1px;background:var(--gold)}
+.hero-eyebrow span{
+  font-size:11px;letter-spacing:0.5em;color:var(--gold);
+}
+.hero-eyebrow::before,.hero-eyebrow::after{
+  content:'';flex:0 0 28px;height:1px;background:var(--gold);opacity:0.7;
+}
 .hero-h1{
   font-family:'Noto Serif JP',serif;
-  font-size:clamp(36px,4.8vw,64px);font-weight:200;
-  color:var(--fg);line-height:1.75;letter-spacing:0.06em;
-  margin-bottom:12px;text-wrap:balance;
+  font-size:clamp(30px,4.2vw,58px);font-weight:300;
+  color:var(--fg);line-height:1.75;letter-spacing:0.04em;
+  text-wrap:balance;
+  margin-bottom:28px;
   opacity:0;animation:fi 1s 0.6s forwards;
 }
-.hero-h1 em{font-style:normal;color:var(--gold)}
-.hero-rule{width:44px;height:1px;background:var(--gold);margin:28px 0;opacity:0;animation:fi 1s 0.9s forwards}
-.hero-sub{
-  font-size:17px;color:var(--fg-sub);line-height:2.4;letter-spacing:0.06em;
-  margin-bottom:48px;opacity:0;animation:fi 1s 1s forwards;
+.hero-body{
+  font-size:14px;color:var(--fg-sub);line-height:2.4;letter-spacing:0.04em;
+  margin-bottom:40px;
+  opacity:0;animation:fi 1s 0.9s forwards;
 }
-.hero-btns{display:flex;gap:16px;flex-wrap:wrap;opacity:0;animation:fi 1s 1.2s forwards}
-.btn-primary{
-  padding:18px 52px;background:var(--gold);color:#08080f;
-  font-family:'Noto Serif JP',serif;font-size:15px;font-weight:300;letter-spacing:0.3em;
-  text-decoration:none;transition:all 0.4s;
+.hero-cta{
   display:inline-flex;align-items:center;gap:10px;
+  padding:16px 48px;background:var(--gold);color:var(--bg);
+  font-family:'Noto Serif JP',serif;font-size:14px;font-weight:300;
+  letter-spacing:0.3em;text-decoration:none;
+  transition:background 0.35s;
+  opacity:0;animation:fi 1s 1.1s forwards;
 }
-.btn-primary::after{content:'→';transition:transform 0.3s}
-.btn-primary:hover{background:var(--gold2)}
-.btn-primary:hover::after{transform:translateX(4px)}
-.btn-secondary{
-  padding:18px 36px;border:1px solid rgba(200,168,75,0.4);color:var(--fg-sub);
-  font-size:14px;letter-spacing:0.2em;text-decoration:none;transition:all 0.4s;
-}
-.btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+.hero-cta::after{content:'›';font-size:18px;transition:transform 0.3s}
+.hero-cta:hover{background:var(--gold2)}
+.hero-cta:hover::after{transform:translateX(4px)}
 .hero-badges{
-  display:flex;gap:24px;margin-top:40px;flex-wrap:wrap;
-  opacity:0;animation:fi 1s 1.4s forwards;
+  display:flex;gap:0;margin-top:36px;
+  opacity:0;animation:fi 1s 1.3s forwards;
+  border-top:1px solid var(--line);
+  padding-top:24px;
 }
-.badge{font-size:13px;color:var(--fg-sub);display:flex;align-items:center;gap:7px;letter-spacing:0.08em}
-.badge::before{content:'✓';color:var(--gold);font-size:13px}
+.hero-badge{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;color:var(--fg-sub);letter-spacing:0.08em;
+  padding-right:24px;margin-right:24px;
+  border-right:1px solid var(--line);
+}
+.hero-badge:last-child{border-right:none;margin-right:0;padding-right:0}
+.hero-badge svg{width:16px;height:16px;fill:var(--gold);flex-shrink:0}
 
-/* スクロールインジケーター */
 .scroll-ind{
   position:absolute;bottom:36px;left:80px;z-index:10;
   display:flex;align-items:center;gap:12px;
   opacity:0;animation:fi 1s 1.8s forwards;
 }
-.scroll-line{width:44px;height:1px;background:var(--gold);opacity:0.5}
-.scroll-txt{font-size:10px;letter-spacing:0.4em;color:var(--fg-sub)}
+.scroll-line{width:40px;height:1px;background:var(--gold);opacity:0.5}
+.scroll-txt{font-size:9px;letter-spacing:0.5em;color:var(--fg-sub)}
 
-/* ========== SECTIONS ========== */
-.section{padding:108px 80px}
-.section-inner{max-width:960px;margin:0 auto}
-.ey{font-size:11px;letter-spacing:0.6em;color:var(--gold);text-transform:uppercase;margin-bottom:22px;display:flex;align-items:center;gap:14px}
-.ey::before{content:'';width:28px;height:1px;background:var(--gold)}
-.sec-h{font-family:'Noto Serif JP',serif;font-size:clamp(26px,3.2vw,42px);font-weight:200;color:var(--fg);letter-spacing:0.08em;line-height:1.9;margin-bottom:18px;text-wrap:balance}
-.sec-h b{color:var(--gold);font-weight:200}
-.sec-rule{width:44px;height:1px;background:var(--gold);opacity:0.5;margin-bottom:60px}
-
-/* Pain */
-.pain-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:52px}
+/* ===== PAIN SECTION ===== */
+.pain-sec{
+  background:var(--bg3);padding:100px 48px;
+}
+.pain-inner{max-width:960px;margin:0 auto}
+.sec-eyebrow{
+  text-align:center;font-size:11px;letter-spacing:0.5em;
+  color:var(--fg-sub);margin-bottom:20px;
+}
+.sec-title{
+  font-family:'Noto Serif JP',serif;
+  font-size:clamp(22px,3vw,36px);font-weight:300;
+  color:var(--fg-dk);text-align:center;line-height:1.9;
+  letter-spacing:0.08em;text-wrap:balance;
+  margin-bottom:56px;
+}
+.pain-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:16px;
+}
 .pain-card{
-  background:var(--bg);padding:44px 38px;position:relative;overflow:hidden;
-  transition:background 0.4s, transform 0.4s;
+  background:#fff;border:1px solid rgba(200,168,75,0.2);
+  border-radius:4px;padding:32px 20px 28px;text-align:center;
+  transition:transform 0.4s,box-shadow 0.4s;
 }
-.pain-card:hover{background:var(--bg2);transform:translateY(-5px)}
-.pain-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity 0.4s}
-.pain-card:hover::after{opacity:1}
-.pain-num{font-family:'Noto Serif JP',serif;font-size:48px;font-weight:200;color:rgba(200,168,75,0.12);margin-bottom:18px}
-.pain-txt{font-size:16px;color:var(--fg-sub);line-height:2.3;letter-spacing:0.04em}
+.pain-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.08)}
+.pain-icon{
+  width:48px;height:48px;margin:0 auto 16px;
+  background:rgba(200,168,75,0.1);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.pain-icon svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5}
+.pain-label{font-size:13px;color:#555;line-height:1.9;letter-spacing:0.04em;margin-bottom:6px}
+.pain-em{font-size:14px;font-weight:400;color:var(--coral);letter-spacing:0.04em}
 
-.resolve-box{border:1px solid var(--line);padding:52px 60px;text-align:center;position:relative}
-.resolve-box::before,.resolve-box::after{content:'◇';position:absolute;color:var(--gold);font-size:11px;left:50%;transform:translateX(-50%)}
-.resolve-box::before{top:-7px}.resolve-box::after{bottom:-7px}
-.resolve-txt{font-family:'Noto Serif JP',serif;font-size:clamp(18px,2.2vw,24px);font-weight:200;color:var(--fg);letter-spacing:0.1em;line-height:2}
-.resolve-txt em{font-style:normal;color:var(--gold)}
-
-/* Strength */
-.str-sec{background:var(--bg2)}
-.str-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+/* ===== STRENGTH SECTION ===== */
+.str-sec{
+  background:var(--navy);padding:100px 48px;
+  position:relative;overflow:hidden;
+}
+.str-sec::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(200,168,75,0.07),transparent);
+}
+.str-inner{max-width:960px;margin:0 auto;position:relative}
+.str-title-row{text-align:center;margin-bottom:56px}
+.str-title-row .sec-title{color:var(--fg)}
+.str-num-em{color:var(--gold)}
+.str-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);
+}
 .str-card{
-  background:var(--bg2);padding:48px 44px;position:relative;
-  transition:background 0.4s, transform 0.4s;
+  background:var(--navy);padding:40px 28px;
+  transition:background 0.4s;
 }
-.str-card:hover{background:var(--bg);transform:translateY(-5px)}
-.str-num{font-family:'Noto Serif JP',serif;font-size:48px;font-weight:200;color:rgba(200,168,75,0.1);position:absolute;top:28px;right:28px}
-.str-title{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:300;color:var(--gold);letter-spacing:0.1em;margin-bottom:18px;line-height:1.7}
-.str-body{font-size:15px;color:var(--fg-sub);line-height:2.5;letter-spacing:0.03em}
-
-/* CTA */
-.cta-sec{
-  padding:128px 80px;text-align:center;position:relative;overflow:hidden;
-  background:var(--bg);
+.str-card:hover{background:rgba(13,21,53,0.5)}
+.str-card-icon{
+  width:48px;height:48px;margin-bottom:20px;
+  background:rgba(200,168,75,0.1);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
 }
-.cta-sec::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-.cta-h{font-family:'Noto Serif JP',serif;font-size:clamp(26px,3.2vw,42px);font-weight:200;color:var(--fg);letter-spacing:0.08em;line-height:2;margin-bottom:14px;text-wrap:balance}
-.cta-h em{font-style:normal;color:var(--gold)}
-.cta-rule{width:44px;height:1px;background:var(--gold);opacity:0.5;margin:28px auto 40px}
-.cta-sub{font-size:16px;color:var(--fg-sub);letter-spacing:0.08em;line-height:2.6;margin-bottom:56px}
-.cta-free{margin-top:24px;font-size:12px;color:var(--fg-sub);letter-spacing:0.3em}
+.str-card-icon svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5}
+.str-card-title{
+  font-family:'Noto Serif JP',serif;font-size:15px;font-weight:300;
+  color:var(--gold);letter-spacing:0.1em;line-height:1.7;margin-bottom:14px;
+}
+.str-card-body{font-size:13px;color:var(--fg-sub);line-height:2.3;letter-spacing:0.03em}
 
-/* Profile */
-.profile-wrap{display:flex;gap:60px;align-items:flex-start}
-.profile-img-col{flex:0 0 260px;text-align:center}
+/* ===== PROFILE SECTION ===== */
+.profile-sec{
+  background:var(--bg2);padding:100px 48px;
+  position:relative;overflow:hidden;
+}
+.profile-sec::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.profile-inner{
+  max-width:960px;margin:0 auto;
+  display:grid;grid-template-columns:280px 1fr;gap:64px;align-items:start;
+}
+.profile-img-wrap{position:relative}
 .profile-img-frame{
-  width:220px;height:260px;margin:0 auto 20px;
-  border:1px solid var(--line);overflow:hidden;position:relative;
+  width:240px;height:300px;overflow:hidden;
+  border:1px solid var(--line);position:relative;
 }
 .profile-img-frame::after{
   content:'';position:absolute;inset:0;
-  border:1px solid rgba(200,168,75,0.3);pointer-events:none;
+  border:1px solid rgba(200,168,75,0.25);pointer-events:none;
 }
 .profile-img{width:100%;height:100%;object-fit:cover;object-position:center top}
-.profile-name{font-family:'Noto Serif JP',serif;font-size:22px;font-weight:200;color:var(--gold);letter-spacing:0.3em;margin-bottom:6px}
-.profile-title{font-size:12px;color:var(--fg-sub);letter-spacing:0.3em}
-.profile-body-col{flex:1;padding-top:8px}
+/* 花・装飾（プレースホルダー　後でチャッピー素材に差し替え） */
+.profile-deco{
+  position:absolute;bottom:-12px;right:-12px;
+  width:80px;height:80px;
+  background:radial-gradient(circle,rgba(200,168,75,0.3),transparent 70%);
+  border-radius:50%;
+}
+.profile-name-block{margin-top:20px}
+.profile-eyebrow{
+  font-size:11px;letter-spacing:0.4em;color:var(--gold);margin-bottom:8px;
+}
+.profile-name{
+  font-family:'Noto Serif JP',serif;font-size:28px;font-weight:200;
+  color:var(--fg);letter-spacing:0.2em;line-height:1.4;
+}
+.profile-name-kana{font-size:13px;color:var(--fg-sub);letter-spacing:0.3em;margin-left:4px}
+.profile-company{font-size:12px;color:var(--fg-sub);letter-spacing:0.1em;margin-top:10px;line-height:2}
+.profile-activities{margin-top:16px}
+.activity-label{
+  display:inline-block;font-size:10px;letter-spacing:0.3em;
+  color:var(--gold);border:1px solid rgba(200,168,75,0.4);
+  padding:3px 12px;margin-bottom:12px;
+}
+.activity-list{list-style:none}
+.activity-list li{
+  font-size:13px;color:var(--fg-sub);line-height:2.2;letter-spacing:0.04em;
+  display:flex;align-items:center;gap:8px;
+}
+.activity-list li::before{content:'✓';color:var(--gold);font-size:11px}
+
+.profile-right{}
 .profile-lead{
-  font-family:'Noto Serif JP',serif;font-size:17px;font-weight:200;
-  color:var(--fg);line-height:2;letter-spacing:0.06em;
-  margin-bottom:28px;padding-left:16px;
-  border-left:1px solid var(--gold);
+  font-family:'Noto Serif JP',serif;
+  font-size:clamp(20px,2.4vw,28px);font-weight:200;
+  color:var(--fg);line-height:1.9;letter-spacing:0.08em;
+  margin-bottom:28px;text-wrap:balance;
 }
-.profile-txt{font-size:15px;color:var(--fg-sub);line-height:2.5;letter-spacing:0.03em;margin-bottom:16px}
-.profile-tags{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
-.ptag{font-size:11px;color:var(--gold);border:1px solid rgba(200,168,75,0.35);padding:5px 14px;letter-spacing:0.1em}
+.profile-lead em{font-style:normal;color:var(--gold)}
+.profile-rule{width:36px;height:1px;background:var(--gold);opacity:0.5;margin-bottom:28px}
+.profile-body{font-size:14px;color:var(--fg-sub);line-height:2.6;letter-spacing:0.04em;margin-bottom:16px}
 
-/* Footer */
+/* ===== STEPS SECTION ===== */
+.steps-sec{background:var(--bg);padding:100px 48px}
+.steps-inner{max-width:960px;margin:0 auto}
+.steps-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;position:relative;
+  margin-top:56px;
+}
+.steps-grid::before{
+  content:'';position:absolute;top:40px;left:12.5%;right:12.5%;height:1px;
+  background:linear-gradient(90deg,var(--gold),rgba(200,168,75,0.3));
+  z-index:0;
+}
+.step-card{text-align:center;padding:0 20px;position:relative;z-index:1}
+.step-num{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--gold);color:var(--bg);
+  font-family:'Noto Serif JP',serif;font-size:15px;font-weight:300;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;letter-spacing:0.1em;
+}
+.step-icon-wrap{
+  width:36px;height:36px;margin:0 auto 16px;
+}
+.step-icon-wrap svg{width:36px;height:36px;stroke:var(--gold);fill:none;stroke-width:1.2}
+.step-title{
+  font-family:'Noto Serif JP',serif;font-size:16px;font-weight:300;
+  color:var(--fg);letter-spacing:0.1em;margin-bottom:12px;
+}
+.step-body{font-size:12px;color:var(--fg-sub);line-height:2.2;letter-spacing:0.03em}
+
+/* ===== PRICE SECTION ===== */
+.price-sec{
+  background:var(--bg2);padding:100px 48px;
+  position:relative;overflow:hidden;
+}
+.price-sec::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.price-inner{max-width:860px;margin:0 auto}
+.price-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:24px;
+  margin-top:56px;
+}
+.price-card{
+  border:1px solid var(--line);padding:44px 36px;position:relative;
+  background:rgba(13,13,32,0.6);
+}
+.price-card.recommend{
+  border-color:var(--gold);
+  background:rgba(13,13,32,0.8);
+}
+.recommend-badge{
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:var(--bg);
+  font-size:11px;letter-spacing:0.3em;padding:4px 20px;white-space:nowrap;
+}
+.price-plan-name{
+  font-family:'Noto Serif JP',serif;font-size:13px;font-weight:300;
+  color:var(--gold);letter-spacing:0.3em;margin-bottom:10px;
+}
+.price-plan-title{
+  font-family:'Noto Serif JP',serif;font-size:18px;font-weight:200;
+  color:var(--fg);letter-spacing:0.1em;margin-bottom:6px;line-height:1.6;
+}
+.price-amount{
+  font-family:'Noto Serif JP',serif;
+  font-size:clamp(32px,4vw,48px);font-weight:200;
+  color:var(--gold);letter-spacing:0.05em;margin:16px 0 8px;
+}
+.price-amount span{font-size:16px;vertical-align:baseline;margin-left:4px}
+.price-note{font-size:11px;color:var(--fg-sub);letter-spacing:0.1em;margin-bottom:20px}
+.price-features{list-style:none;margin-top:20px;border-top:1px solid var(--line);padding-top:20px}
+.price-features li{
+  font-size:13px;color:var(--fg-sub);line-height:2.4;letter-spacing:0.03em;
+  display:flex;align-items:center;gap:8px;
+}
+.price-features li::before{content:'✓';color:var(--gold);font-size:11px}
+.price-footnote{
+  text-align:center;font-size:11px;color:var(--fg-sub);letter-spacing:0.1em;
+  margin-top:28px;padding-top:20px;border-top:1px solid var(--line2);
+}
+
+/* ===== FINAL CTA ===== */
+.cta-sec{
+  position:relative;padding:140px 48px;text-align:center;overflow:hidden;
+  background:var(--bg);
+}
+.cta-bg{
+  position:absolute;inset:0;
+  background:url('bg/bg_luxury.webp') center 70%/cover no-repeat;
+  opacity:0.25;
+}
+.cta-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,var(--bg) 0%,rgba(6,6,15,0.5) 50%,var(--bg) 100%);
+}
+.cta-inner{position:relative;z-index:1}
+.cta-title{
+  font-family:'Noto Serif JP',serif;
+  font-size:clamp(22px,3vw,38px);font-weight:200;
+  color:var(--fg);line-height:2;letter-spacing:0.08em;
+  text-wrap:balance;margin-bottom:12px;
+}
+.cta-title em{font-style:normal;color:var(--gold)}
+.cta-rule{width:40px;height:1px;background:var(--gold);opacity:0.5;margin:28px auto 36px}
+.cta-sub{font-size:14px;color:var(--fg-sub);letter-spacing:0.1em;line-height:2.6;margin-bottom:52px}
+.cta-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:18px 56px;background:var(--gold);color:var(--bg);
+  font-family:'Noto Serif JP',serif;font-size:14px;font-weight:300;
+  letter-spacing:0.3em;text-decoration:none;
+  transition:background 0.35s;
+}
+.cta-btn::after{content:'›';font-size:18px;transition:transform 0.3s}
+.cta-btn:hover{background:var(--gold2)}
+.cta-btn:hover::after{transform:translateX(4px)}
+.cta-free{margin-top:20px;font-size:11px;color:var(--fg-sub);letter-spacing:0.3em}
+
+/* ===== FOOTER ===== */
 footer{
-  background:#030308;border-top:1px solid var(--line);
-  padding:40px 80px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+  background:#020208;border-top:1px solid var(--line);
+  padding:36px 48px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
 }
-.f-logo{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:200;letter-spacing:0.4em;color:var(--gold)}
-.f-copy{font-size:11px;letter-spacing:0.15em;color:var(--fg-sub)}
+.f-logo{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:200;letter-spacing:0.3em;color:var(--gold)}
+.f-copy{font-size:10px;letter-spacing:0.15em;color:var(--fg-sub)}
 
-/* ========== SCROLL ANIMATION ========== */
-.reveal{opacity:0;transform:translateY(32px);transition:opacity 0.9s cubic-bezier(0.16,1,0.3,1),transform 0.9s cubic-bezier(0.16,1,0.3,1)}
-.reveal.d1{transition-delay:.1s}.reveal.d2{transition-delay:.2s}.reveal.d3{transition-delay:.3s}.reveal.d4{transition-delay:.4s}
+/* ===== SCROLL REVEAL ===== */
+.reveal{
+  opacity:0;transform:translateY(28px);
+  transition:opacity 0.9s cubic-bezier(0.16,1,0.3,1),transform 0.9s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.d1{transition-delay:.1s}.reveal.d2{transition-delay:.2s}
+.reveal.d3{transition-delay:.3s}.reveal.d4{transition-delay:.4s}
 .reveal.in{opacity:1;transform:none}
+@keyframes fi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
-@keyframes fi{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-
-/* reduced-motion */
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  nav{padding:0 20px}
+  .nav-links{display:none}
+  .layer-text{padding:0 24px;max-width:100%}
+  .hero-h1{font-size:clamp(26px,8vw,38px)}
+  .hero-badges{flex-direction:column;gap:12px}
+  .hero-badge{border-right:none;padding-right:0;margin-right:0}
+  .hero-float{display:none}
+  .layer-person{height:65%;right:-4%;opacity:0.6}
+  .scroll-ind{left:24px}
+  .pain-sec,.str-sec,.profile-sec,.steps-sec,.price-sec,.cta-sec{padding:72px 20px}
+  .pain-grid{grid-template-columns:1fr 1fr}
+  .str-grid{grid-template-columns:1fr 1fr}
+  .profile-inner{grid-template-columns:1fr;gap:36px}
+  .profile-img-frame{width:200px;height:250px}
+  .steps-grid{grid-template-columns:1fr 1fr;gap:32px}
+  .steps-grid::before{display:none}
+  .price-grid{grid-template-columns:1fr}
+  footer{padding:28px 20px}
+}
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
   .reveal{opacity:1;transform:none}
   .layer-person{opacity:1}
 }
-
-/* ========== RESPONSIVE ========== */
-@media(max-width:768px){
-  nav{padding:14px 20px}
-  .nav-links{display:none}
-  .layer-text{padding:0 24px;max-width:100%}
-  .hero-h1{font-size:clamp(30px,9vw,44px)}
-  .hero-sub{font-size:15px}
-  .layer-person{height:65%;right:-2%}
-  .scroll-ind{left:24px}
-  .section{padding:80px 20px}
-  .pain-grid{grid-template-columns:1fr}
-  .str-grid{grid-template-columns:1fr}
-  .resolve-box{padding:36px 24px}
-  .cta-sec{padding:88px 24px}
-  footer{padding:32px 20px}
-  .pain-card:hover,.str-card:hover{transform:none}
-  .profile-wrap{flex-direction:column;gap:32px}
-  .profile-img-col{flex:none;width:100%}
-  .profile-img-frame{width:180px;height:220px}
-}
 </style>
-</head>
-<body>
 
 <nav>
-  <div class="nav-logo">SHiKi — 婚活サポート</div>
+  <a href="#" class="nav-logo">
+    <svg class="nav-logo-icon" viewBox="0 0 28 28" fill="none">
+      <path d="M14 3l2.5 7h7.5l-6 4.5 2.5 7L14 17.5 7.5 21.5l2.5-7L4 10h7.5z" stroke="#c8a84b" stroke-width="1.2" fill="none"/>
+    </svg>
+    SHiKi 婚活サポート
+  </a>
   <ul class="nav-links">
-    <li><a href="#strength">SHiKiの強み</a></li>
-    <li><a href="#service">サポートの流れ</a></li>
+    <li><a href="#profile">SHiKiの想い</a></li>
+    <li><a href="#steps">サポートの流れ</a></li>
     <li><a href="#price">料金プラン</a></li>
+    <li><a href="#strength">よくあるご質問</a></li>
   </ul>
-  <a href="#contact" class="nav-cta">無料相談を申し込む</a>
+  <a href="#contact" class="nav-cta">無料相談を申し込む ›</a>
 </nav>
 
-<!-- HERO — Cinematic 4-Layer Parallax -->
-<section class="hero" id="hero">
+<!-- ========== HERO ========== -->
+<section class="hero" id="top">
   <div class="hero-sticky">
-    <!-- Layer 1: 背景 (0.2倍速) -->
     <div class="layer-bg" id="layerBg"></div>
-
-    <!-- Layer 2: 光・装飾 (0.4倍速) -->
-    <div class="layer-light" id="layerLight">
-      <div class="gold-ray"></div>
-      <div class="gold-ray2"></div>
+    <div class="layer-overlay" id="layerOv">
+      <div class="gold-ray gold-ray-1"></div>
+      <div class="gold-ray gold-ray-2"></div>
+      <div class="gold-ray gold-ray-3"></div>
     </div>
+    <img src="person/person_luxury.webp" alt="" class="layer-person" id="layerPs" aria-hidden="true">
 
-    <!-- Layer 3: 人物 (0.7倍速) -->
-    <img src="person/person_luxury.webp" alt="" class="layer-person" id="layerPerson" aria-hidden="true">
+    <div class="hero-float">理想のパートナーと出会い、<br>人生をもっと豊かに。</div>
 
-    <!-- Layer 4: テキスト (1.0倍速 = stickyで固定) -->
-    <div class="layer-text" id="layerText">
-      <div class="hero-eyebrow">Premium Marriage Support for Men</div>
-      <h1 class="hero-h1">人生が変わる<br><em>占い師</em>が、<br>あなたの婚活を<br>変える。</h1>
-      <div class="hero-rule"></div>
-      <p class="hero-sub">女性相談のプロが、女性目線で<br>「選ばれる男性」へと導きます。</p>
-      <div class="hero-btns">
-        <a href="#contact" class="btn-primary">無料相談を申し込む</a>
-        <a href="#strength" class="btn-secondary">サービスを見る</a>
+    <div class="layer-text" id="layerTx">
+      <div class="hero-eyebrow">
+        <span>男性のための、婚活コンサルティング</span>
       </div>
+      <h1 class="hero-h1">女性が本当に求めている<br>男性を、あなたはご存じですか。</h1>
+      <p class="hero-body">SHiKi婚活サポートは、女性目線のアドバイスで、<br>婚活の「うまくいかない」を解決する<br>男性専用の結婚コンサルティングです。</p>
+      <a href="#contact" class="hero-cta">無料相談を申し込む</a>
       <div class="hero-badges">
-        <span class="badge">初回60分無料</span>
-        <span class="badge">秘密厳守</span>
-        <span class="badge">女性会員在籍中</span>
+        <div class="hero-badge">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          男性専用の婚活サポート
+        </div>
+        <div class="hero-badge">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          女性目線の実践的アドバイス
+        </div>
+        <div class="hero-badge">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          相談から実践・定着まで伴走
+        </div>
       </div>
     </div>
 
-    <!-- スクロールインジケーター -->
     <div class="scroll-ind">
       <div class="scroll-line"></div>
       <span class="scroll-txt">SCROLL</span>
@@ -318,134 +535,227 @@ footer{
   </div>
 </section>
 
-<!-- PAIN -->
-<section class="section" id="about">
-  <div class="section-inner">
-    <div class="ey reveal">Pain Points</div>
-    <h2 class="sec-h reveal d1">なぜ、婚活が<br><b>うまくいかないのか。</b></h2>
-    <div class="sec-rule reveal d2"></div>
-    <div class="pain-grid reveal d3">
-      <div class="pain-card"><div class="pain-num">01</div><p class="pain-txt">マッチングはできるのに<br>関係が続かない</p></div>
-      <div class="pain-card"><div class="pain-num">02</div><p class="pain-txt">何が悪いのか<br>自分ではわからない</p></div>
-      <div class="pain-card"><div class="pain-num">03</div><p class="pain-txt">女性が何を考えているのか<br>理解できない</p></div>
-      <div class="pain-card"><div class="pain-num">04</div><p class="pain-txt">時間もお金もかけているのに<br>結果が出ない</p></div>
-    </div>
-    <div class="resolve-box reveal d4">
-      <p class="resolve-txt">その悩み、<em>女性の本音を知る占い師</em>が<br>明確な答えを持っています。</p>
-    </div>
-  </div>
-</section>
-
-<!-- STRENGTH -->
-<section class="section str-sec" id="strength">
-  <div class="section-inner">
-    <div class="ey reveal">Why SHiKi</div>
-    <h2 class="sec-h reveal d1">他にはない、<br><b>本質的なアドバンテージ。</b></h2>
-    <div class="sec-rule reveal d2"></div>
-    <div class="str-grid reveal d3">
-      <div class="str-card"><span class="str-num">I</span><div class="str-title">占い師だから見える<br>女性の本音</div><p class="str-body">長年の女性相談と占いの実績から、女性がパートナーに本当に求めるものを深く理解。表面的な改善ではなく、本質的な変化を導きます。</p></div>
-      <div class="str-card"><span class="str-num">II</span><div class="str-title">既存の女性会員との<br>出会いの機会</div><p class="str-body">すでに女性会員が在籍する環境。コーチングを受けながら、実際の出会いの機会も同時に進めることができます。</p></div>
-      <div class="str-card"><span class="str-num">III</span><div class="str-title">あなた専用の<br>戦略設計</div><p class="str-body">画一的なアドバイスではなく、あなたの個性・強みを活かしたオーダーメイドの婚活プランを設計します。</p></div>
-      <div class="str-card"><span class="str-num">IV</span><div class="str-title">LINE通話で<br>気軽に相談できる</div><p class="str-body">堅苦しくない、話しやすい雰囲気でサポート。LINEでいつでも相談できるので、一人で悩まず前進できます。</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- PROFILE -->
-<section class="section" id="profile">
-  <div class="section-inner">
-    <div class="ey reveal">Profile</div>
-    <h2 class="sec-h reveal d1">あなたの相談相手、<br><b>SHiKiについて。</b></h2>
-    <div class="sec-rule reveal d2"></div>
-    <div class="profile-wrap reveal d3">
-      <div class="profile-img-col">
-        <div class="profile-img-frame">
-          <img src="person/shiki_profile.png" alt="SHiKi" class="profile-img">
+<!-- ========== PAIN ========== -->
+<section class="pain-sec" id="about">
+  <div class="pain-inner">
+    <p class="sec-eyebrow reveal">— こんなご相談、ありませんか？ —</p>
+    <h2 class="sec-title reveal d1">うまくいかない婚活、<br>その理由を一緒に見直してみませんか？</h2>
+    <div class="pain-grid reveal d2">
+      <div class="pain-card">
+        <div class="pain-icon">
+          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
         </div>
-        <div class="profile-name-block">
-          <div class="profile-name">SHiKi</div>
-          <div class="profile-title">人生が変わる占い師</div>
-        </div>
+        <p class="pain-label">マッチングはできるのに</p>
+        <p class="pain-em">関係が続かない</p>
       </div>
-      <div class="profile-body-col">
-        <p class="profile-lead">「占いで人の人生に触れてきたからこそ、<br>女性の本音が見えます。」</p>
-        <p class="profile-txt">長年にわたって女性の恋愛・婚活相談を占いと対話で支えてきました。女性がパートナーに本当に求めているもの、言葉にならない気持ちを深く理解しています。</p>
-        <p class="profile-txt">堅苦しくなく、気さくに話せる雰囲気が持ち味。LINEやInstagramライブを通じて、多くの方が「話してよかった」と感じてくれています。</p>
-        <div class="profile-tags">
-          <span class="ptag">占い師</span>
-          <span class="ptag">婚活アドバイザー</span>
-          <span class="ptag">女性心理の専門家</span>
-          <span class="ptag">天然石アクセサリー作家</span>
+      <div class="pain-card">
+        <div class="pain-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </div>
+        <p class="pain-label">何がいけないのか</p>
+        <p class="pain-em">自分ではわからない</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <p class="pain-label">女性が何を考えているのか</p>
+        <p class="pain-em">理解できない</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </div>
+        <p class="pain-label">どこから始めれば</p>
+        <p class="pain-em">いいかわからない</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
+<!-- ========== STRENGTH ========== -->
+<section class="str-sec" id="strength">
+  <div class="str-inner">
+    <div class="str-title-row">
+      <p class="sec-eyebrow reveal" style="color:rgba(200,168,75,0.6)">STRENGTH</p>
+      <h2 class="sec-title reveal d1">SHiKiが選ばれる<em class="str-num-em">4</em>つの強み</h2>
+    </div>
+    <div class="str-grid reveal d2">
+      <div class="str-card">
+        <div class="str-card-icon">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="str-card-title">女性目線の<br>アドバイス</div>
+        <p class="str-card-body">女性の本音や考え方をベースに、あなたの魅力を引き出すアドバイス。</p>
+      </div>
+      <div class="str-card">
+        <div class="str-card-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="str-card-title">実践的な<br>サポート</div>
+        <p class="str-card-body">プロフィール・会話・デートなど、行動改善まで、すぐに使える実践的なノウハウを提供。</p>
+      </div>
+      <div class="str-card">
+        <div class="str-card-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <div class="str-card-title">LINE通話で<br>気軽に相談</div>
+        <p class="str-card-body">忙しい方でも、LINEでいつでも相談可能。継続しやすい環境です。</p>
+      </div>
+      <div class="str-card">
+        <div class="str-card-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div class="str-card-title">親しみやすい<br>カウンセリング</div>
+        <p class="str-card-body">一人ひとりのペースに合わせ、丁寧で安心できる伴走型のサポートを行います。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PROFILE ========== -->
+<section class="profile-sec" id="profile">
+  <div class="profile-inner">
+    <div class="profile-img-wrap reveal">
+      <div class="profile-img-frame">
+        <img src="person/shiki_profile.png" alt="SHiKi" class="profile-img">
+      </div>
+      <div class="profile-deco"></div>
+      <div class="profile-name-block">
+        <p class="profile-eyebrow">人生が変わる占い師</p>
+        <div class="profile-name">SHiKi <span class="profile-name-kana">（シキ）</span></div>
+        <div class="profile-company">
+          SHiKiクリエイター株式会社<br>
+          代表取締役　下里 清美
+        </div>
+        <div class="profile-activities">
+          <span class="activity-label">主な活動</span>
+          <ul class="activity-list">
+            <li>占い鑑定・人生相談</li>
+            <li>結婚準備講座</li>
+            <li>魅力覚醒・コンサルティング</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="profile-right reveal d2">
+      <p class="profile-lead">あなたらしい幸せを、<br>一緒に<em>見つけて</em>いきましょう。</p>
+      <div class="profile-rule"></div>
+      <p class="profile-body">SHiKiは、直感や感性を大切にしながら、一人ひとりの想いやその人らしい魅力を「可能性」として引き出すサポートを行っています。</p>
+      <p class="profile-body">占い鑑定・人生相談・結婚準備講座・コンサルティングを通じて、特に男性の婚活サポートでは、女性の視点から、やさしく、そして実践的なアドバイスで伴走します。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== STEPS ========== -->
+<section class="steps-sec" id="steps">
+  <div class="steps-inner">
+    <p class="sec-eyebrow reveal">PROCESS</p>
+    <h2 class="sec-title reveal d1" style="color:var(--fg)">ご相談から成婚を目指すまでの4ステップ</h2>
+    <p style="text-align:center;font-size:13px;color:var(--fg-sub);margin-top:-32px;margin-bottom:0;letter-spacing:0.08em" class="reveal d2">今のお悩みから、理想のパートナーとの出会い・ご成婚まで、SHiKiが一貫してサポートします。</p>
+    <div class="steps-grid reveal d3">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-title">相談</div>
+        <p class="step-body">まずは無料相談で、現在のお悩みや状況をお聞かせください。</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-title">分析</div>
+        <p class="step-body">婚活の課題を女性目線で分析し、改善の方向性を明確にします。</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-title">実践</div>
+        <p class="step-body">プロフィールや会話、デートの改善を行い、実際の出会いで実現します。</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">04</div>
+        <div class="step-title">フォローアップ</div>
+        <p class="step-body">活動の状況を振り返り、必要に応じて戦略を調整しながら成婚まで伴走します。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PRICE ========== -->
+<section class="price-sec" id="price">
+  <div class="price-inner">
+    <p class="sec-eyebrow reveal" style="color:rgba(200,168,75,0.6)">PLAN</p>
+    <h2 class="sec-title reveal d1" style="color:var(--fg)">料金プランのご案内</h2>
+    <p class="reveal d2" style="text-align:center;font-size:13px;color:var(--fg-sub);letter-spacing:0.08em;margin-top:-32px">はじめやすく、しっかりサポートできるプランをご用意しています。</p>
+    <div class="price-grid reveal d3">
+      <div class="price-card">
+        <p class="price-plan-name">FREE</p>
+        <h3 class="price-plan-title">無料初回相談<br>60分</h3>
+        <div class="price-amount">0<span>円</span></div>
+        <p class="price-note">まずはお気軽にご相談ください。</p>
+        <ul class="price-features">
+          <li>現在のお悩みのヒアリング</li>
+          <li>婚活の方向性の整理</li>
+          <li>今後の進め方のご提案</li>
+        </ul>
+      </div>
+      <div class="price-card recommend">
+        <span class="recommend-badge">おすすめ</span>
+        <p class="price-plan-name">STANDARD</p>
+        <h3 class="price-plan-title">3ヶ月伴走プラン<br><span style="font-size:12px;color:var(--fg-sub)">（参考）</span></h3>
+        <div class="price-amount">月30,000<span>円前後</span></div>
+        <p class="price-note">改善の実践から出会いの創出、デートのサポートまで。</p>
+        <ul class="price-features">
+          <li>個別カウンセリング（定期）</li>
+          <li>プロフィール・コミュニケーションの改善</li>
+          <li>婚活・出会いの戦略サポート</li>
+          <li>実践までの継続アドバイス</li>
+        </ul>
+      </div>
+    </div>
+    <p class="price-footnote reveal">上記は一例です。ご希望や状況に合わせて、期間・内容・料金は柔軟に調整できます。</p>
+  </div>
+</section>
+
+<!-- ========== FINAL CTA ========== -->
 <section class="cta-sec" id="contact">
-  <div class="ey" style="justify-content:center">Contact</div>
-  <h2 class="cta-h">あなたの婚活、<em>今日から</em><br>変えましょう。</h2>
-  <div class="cta-rule"></div>
-  <p class="cta-sub">まずは無料カウンセリングで、お気軽にご相談ください。<br>秘密は厳守します。</p>
-  <a href="#" class="btn-primary" style="margin:0 auto">無料相談を申し込む</a>
-  <p class="cta-free">First Consultation — 60min / Complimentary</p>
+  <div class="cta-bg"></div>
+  <div class="cta-overlay"></div>
+  <div class="cta-inner">
+    <h2 class="cta-title reveal">理想のパートナーとの未来を、<br>ここから一緒に<em>描きません</em>か？</h2>
+    <div class="cta-rule reveal d1"></div>
+    <p class="cta-sub reveal d2">一歩踏み出すだけで、出会いは変わります。<br>まずは無料相談で、お気軽にご連絡ください。</p>
+    <a href="#" class="cta-btn reveal d3">無料相談を申し込む</a>
+    <p class="cta-free reveal d4">First Consultation — 60min / Complimentary</p>
+  </div>
 </section>
 
 <footer>
   <div class="f-logo">SHiKi — 人生が変わる占い師の婚活サポート</div>
-  <div class="f-copy">© SHiKi — All rights reserved</div>
+  <div class="f-copy">© SHiKi / SHiKiクリエイター株式会社</div>
 </footer>
 
 <script>
-/* ========== CINEMATIC PARALLAX (rAF) ========== */
-const hero     = document.getElementById('hero');
-const layerBg  = document.getElementById('layerBg');
-const layerLt  = document.getElementById('layerLight');
-const layerPs  = document.getElementById('layerPerson');
-const layerTx  = document.getElementById('layerText');
-
-let ticking = false;
-
-function updateParallax() {
-  const rect = hero.getBoundingClientRect();
-  // stickyが始まる瞬間（rect.top<=0）から終わる瞬間（rect.bottom<=100svh）まで
-  const heroH    = hero.offsetHeight;         // 160svh
-  const viewH    = window.innerHeight;        // 100svh
-  const progress = Math.max(0, Math.min(1, -rect.top / (heroH - viewH)));
-
-  // 各レイヤーの移動量を計算（progress=0→1でyがずれていく）
-  const maxShift = viewH * 0.18; // 最大移動距離（svhの18%）
-  const bg  = progress * maxShift * 0.2;  // Layer1: 0.2倍速
-  const lt  = progress * maxShift * 0.4;  // Layer2: 0.4倍速
-  const ps  = progress * maxShift * 0.7;  // Layer3: 0.7倍速
-  // Layer4(テキスト)はstickyで固定→常に0
-
-  layerBg.style.transform  = `translateY(${bg}px)`;
-  layerLt.style.transform  = `translateY(${lt}px)`;
-  layerPs.style.transform  = `translateY(${ps}px)`;
-
-  ticking = false;
+/* Parallax (rAF) */
+const hero   = document.getElementById('top');
+const lBg    = document.getElementById('layerBg');
+const lOv    = document.getElementById('layerOv');
+const lPs    = document.getElementById('layerPs');
+let tick = false;
+function parallax(){
+  const r = hero.getBoundingClientRect();
+  const prog = Math.max(0,Math.min(1,-r.top/(hero.offsetHeight-window.innerHeight)));
+  const max  = window.innerHeight*0.18;
+  lBg.style.transform = `translateY(${prog*max*0.2}px)`;
+  lOv.style.transform = `translateY(${prog*max*0.4}px)`;
+  lPs.style.transform = `translateY(${prog*max*0.7}px)`;
+  tick = false;
+}
+if(!window.matchMedia('(prefers-reduced-motion:reduce)').matches){
+  window.addEventListener('scroll',()=>{if(!tick){requestAnimationFrame(parallax);tick=true}},{passive:true});
+  parallax();
 }
 
-function onScroll() {
-  if (!ticking) {
-    requestAnimationFrame(updateParallax);
-    ticking = true;
-  }
-}
-
-// reduced-motionの場合はパラレックスOFF
-if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  window.addEventListener('scroll', onScroll, { passive: true });
-  updateParallax(); // 初期値セット
-}
-
-/* ========== SCROLL REVEAL (IntersectionObserver) ========== */
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in') });
-}, { threshold: 0.06 });
-document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+/* Scroll reveal */
+const obs = new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')});
+},{threshold:0.07});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 </script>
-</body>
-</html>
